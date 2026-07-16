@@ -3,94 +3,24 @@
 // script.js
 // ======================================
 
-// ---------- サーバー ----------
+// Renderサーバー
 const SERVER_URL = "https://cardgame-sinuchi.onrender.com";
 
+// Socket
 let socket = null;
 
-// ---------- カード ----------
+// カード
 let cardsDatabase = [];
 let myDeck = [];
 
-// ---------- プロフィール ----------
+// プロフィール
 let profile = {
     name: "ゲスト"
 };
 
-// ---------- ゲーム状態 ----------
-let gameState = {
-    isMyTurn: false,
-
-    myLP: 8000,
-    opponentLP: 8000,
-
-    myCost: 0,
-    myMaxCost: 0,
-    opponentCost: 0,
-
-    myDeckArray: [],
-
-    myHand: [],
-    myField: [],
-    opponentField: [],
-
-    myGraveyard: [],
-    opponentGraveyard: [],
-
-    isNextSummonFaceDown: false,
-
-    apocalypseCount: 0,
-
-    activeEffects: {
-        goshoBonus: false
-    }
-};
-
-// ---------- イラスト判定 ----------
-const CARD_TAGS = {
-
-    gun: [
-        "一般兵士",
-        "いつの日かの飛鉄「佐貫」",
-        "シュラフ・アリーナ",
-        "自衛用拳銃",
-        "次回策"
-    ],
-
-    sword: [
-        "八影月輪",
-        "黒き刃",
-        "永遠の追放者エリシオン",
-        "静寂の剣士ジーク"
-    ],
-
-    katana: [
-        "小夜峰綾香",
-        "カワウソ",
-        "奔華片名代",
-        "ユリカ"
-    ],
-
-    blade: [
-        "八影月輪",
-        "黒き刃",
-        "永遠の追放者エリシオン",
-        "静寂の剣士ジーク",
-
-        "小夜峰綾香",
-        "カワウソ",
-        "奔華片名代",
-        "ユリカ",
-
-        "氷結の地",
-        "イソナ",
-        "異界の聖槍ロンギヌス",
-        "ラーツ・グローブ"
-    ]
-
-};
-
-// ---------- 起動 ----------
+// -------------------------------
+// 起動
+// -------------------------------
 window.onload = async () => {
 
     loadLocalData();
@@ -99,6 +29,136 @@ window.onload = async () => {
 
 };
 
-// ======================================
-// 以下に関数を書いていく
-// ======================================
+// -------------------------------
+// ローカルデータ読込
+// -------------------------------
+function loadLocalData() {
+
+    const savedProfile = localStorage.getItem("eo_profile");
+
+    if (savedProfile) {
+
+        profile = JSON.parse(savedProfile);
+
+        document.getElementById("username-input").value = profile.name;
+
+        document.getElementById("profile-status").textContent =
+            `おかえりなさい、${profile.name} さん！`;
+
+    }
+
+    const savedDeck = localStorage.getItem("eo_deck");
+
+    if (savedDeck) {
+
+        myDeck = JSON.parse(savedDeck);
+
+    }
+
+}
+
+// -------------------------------
+// プロフィール保存
+// -------------------------------
+function saveProfile() {
+
+    const name = document.getElementById("username-input").value.trim();
+
+    if (name === "") {
+
+        alert("名前を入力してください。");
+        return;
+
+    }
+
+    profile.name = name;
+
+    localStorage.setItem("eo_profile", JSON.stringify(profile));
+
+    document.getElementById("profile-status").textContent =
+        "プロフィールを保存しました！";
+
+}
+
+// -------------------------------
+// cards.json読込
+// -------------------------------
+async function loadCardsJSON() {
+
+    try {
+
+        const response = await fetch("cards.json");
+
+        cardsDatabase = await response.json();
+
+        console.log(cardsDatabase.length + "枚読み込みました。");
+
+    } catch (e) {
+
+        console.error(e);
+
+        alert("cards.json の読み込みに失敗しました。");
+
+    }
+
+}
+
+// -------------------------------
+// 画面切替
+// -------------------------------
+function switchScreen(screenId) {
+
+    document.querySelectorAll(".screen").forEach(screen => {
+
+        screen.classList.remove("active");
+
+    });
+
+    document.getElementById(screenId).classList.add("active");
+
+}
+
+// -------------------------------
+// デッキ編集
+// -------------------------------
+function openDeckEditor() {
+
+    switchScreen("deck-editor");
+
+}
+
+function closeDeckEditor() {
+
+    switchScreen("home-screen");
+
+}
+
+// -------------------------------
+// デッキ保存
+// -------------------------------
+function saveDeck() {
+
+    if (myDeck.length < 35 || myDeck.length > 60) {
+
+        alert("デッキは35～60枚で作成してください。");
+
+        return;
+
+    }
+
+    localStorage.setItem("eo_deck", JSON.stringify(myDeck));
+
+    alert("保存しました。");
+
+    switchScreen("home-screen");
+
+}
+
+// -------------------------------
+// オンライン対戦
+// -------------------------------
+function startMatching() {
+
+    alert("ここは後で作ります。");
+
+}
