@@ -1,31 +1,20 @@
-body{
+*{
 
-    margin:0;
-
-    width:100vw;
-    height:100vh;
-
-    background:#111;
-
-    color:white;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    font-family:sans-serif;
+    box-sizing:border-box;
 
 }
 
 
 
-#app{
+body{
 
-    width:90%;
+    margin:0;
 
-    max-width:1000px;
+    padding:20px;
+
+    font-family:sans-serif;
+
+    background:#eeeeee;
 
     text-align:center;
 
@@ -33,29 +22,42 @@ body{
 
 
 
-h1{
 
-    font-size:48px;
+/* =====================
+   画面切替
+===================== */
 
-    margin-bottom:40px;
+
+.screen{
+
+    display:none;
 
 }
 
+
+
+.screen.active{
+
+    display:block;
+
+}
+
+
+
+
+
+/* =====================
+   ボタン
+===================== */
 
 
 button{
 
-    display:block;
+    padding:10px 20px;
 
-    width:300px;
+    margin:5px;
 
-    margin:15px auto;
-
-    padding:15px;
-
-    font-size:22px;
-
-    border-radius:10px;
+    font-size:16px;
 
     cursor:pointer;
 
@@ -63,27 +65,34 @@ button{
 
 
 
-.cardList{
 
-    display:grid;
 
-    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
 
-    gap:10px;
 
-    max-height:500px;
-
-    overflow-y:auto;
-
-}
-
+/* =====================
+   カード
+===================== */
 
 
 .card{
 
-    border:1px solid white;
+    width:120px;
 
-    padding:10px;
+    min-height:180px;
+
+    background:white;
+
+    border:2px solid black;
+
+    border-radius:10px;
+
+    margin:5px;
+
+    padding:5px;
+
+    display:inline-block;
+
+    vertical-align:top;
 
     cursor:pointer;
 
@@ -91,12 +100,209 @@ button{
 
 
 
-.deckArea{
 
-    margin-top:20px;
+.card:hover{
 
-    border:1px solid white;
+    transform:scale(1.05);
+
+}
+
+
+
+
+
+.card img{
+
+    width:100px;
+
+    height:120px;
+
+    object-fit:cover;
+
+}
+
+
+
+
+
+
+.card h3{
+
+    font-size:14px;
+
+    margin:5px;
+
+}
+
+
+
+.card p{
+
+    font-size:12px;
+
+    margin:3px;
+
+}
+
+
+
+
+
+
+
+/* =====================
+   フィールド
+===================== */
+
+
+#enemy-field,
+#my-field,
+#my-hand,
+#card-list,
+#deck-list{
+
+
+    display:flex;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+
+}
+
+
+
+
+
+
+#enemy-field,
+#my-field{
+
+
+    min-height:200px;
+
+    border:2px solid #555;
 
     padding:10px;
+
+    margin:10px;
+
+
+}
+
+
+
+
+
+
+
+/* =====================
+   墓地
+===================== */
+
+
+#enemy-grave,
+#my-grave{
+
+
+    min-height:80px;
+
+    border:1px solid #777;
+
+    margin:10px;
+
+    padding:10px;
+
+    background:#ddd;
+
+
+}
+
+
+
+
+
+
+
+/* =====================
+   情報表示
+===================== */
+
+
+#enemy-info,
+#my-info,
+#turn-info{
+
+
+    font-size:20px;
+
+    margin:10px;
+
+
+}
+
+
+
+
+
+
+
+/* =====================
+   ログ
+===================== */
+
+
+#game-log{
+
+
+    height:150px;
+
+    overflow-y:auto;
+
+    background:white;
+
+    border:1px solid black;
+
+    text-align:left;
+
+    padding:10px;
+
+    margin:10px;
+
+
+}
+
+
+
+
+
+
+/* =====================
+   確認画面
+===================== */
+
+
+#confirm-window{
+
+
+    display:none;
+
+    position:fixed;
+
+    top:40%;
+
+    left:50%;
+
+    transform:translate(-50%,-50%);
+
+    background:white;
+
+    border:3px solid black;
+
+    padding:20px;
+
+    border-radius:10px;
+
 
 }
