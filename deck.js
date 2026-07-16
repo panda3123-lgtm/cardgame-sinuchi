@@ -185,3 +185,60 @@ function saveDeck(){
 
 
 }
+
+// カード枚数確認
+
+function cardLimitCheck(card){
+
+
+    let count = myDeck.filter(
+        c => c.name === card.name
+    ).length;
+
+
+    // 制限カード
+
+    let limitCards = [
+        "これあげる",
+        "小夜峰綾香",
+        "シュラフ・アリーナ"
+    ];
+
+
+    // 準制限カード
+
+    let semiLimitCards = [
+        "ネズミ3.57864"
+    ];
+
+
+
+    if(limitCards.includes(card.name)
+       && count >= 1){
+
+        return false;
+
+    }
+
+
+
+    if(semiLimitCards.includes(card.name)
+       && count >= 2){
+
+        return false;
+
+    }
+
+
+
+    if(count >= 3){
+
+        return false;
+
+    }
+
+
+
+    return true;
+
+}
