@@ -1,60 +1,24 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>エラッタオリジナリティ - 新・完全版</title>
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+<meta charset="UTF-8">
+<title>エラッタオリジナリティ</title>
+<link rel="stylesheet" href="style.css">
 
 </head>
+
+
 <body>
 
-    <div id="home-screen" class="screen active">
-        <div class="panel">
-            <h1>ERRATA ORIGINALITY</h1>
-            <div style="margin: 15px 0; text-align: left;">
-                <label style="font-size: 13px;">👤 プレイヤー名:</label>
-                <input type="text" id="username-input" placeholder="名前を入力してください">
-                <button class="btn btn-secondary" onclick="saveProfile()">プロフィール保存</button>
-                <p id="profile-status" style="font-size: 11px; color: #00ffcc; text-align: center; margin: 5px 0 0 0;"></p>
-            </div>
-            <button class="btn" onclick="startMatching()">オンライン対戦を探す</button>
-            <button class="btn btn-secondary" onclick="openDeckEditor()">デッキ編集</button>
-            <div id="status-message" style="margin-top: 15px; color: #ffcc00; font-size: 13px;"></div>
-        </div>
-    </div>
 
-    <div id="deck-editor" class="screen">
-        <div class="card-pool">
-            <h2>カードプール</h2>
-            <div class="card-grid" id="pool-grid"></div>
-        </div>
-        <div class="my-deck">
-            <h2>マイデッキ (<span id="deck-count">0</span>/60)</h2>
-            <button class="btn" onclick="saveDeck()">保存して戻る</button>
-            <button class="btn btn-secondary" onclick="closeDeckEditor()">保存せずに戻る</button>
-            <div id="deck-list-container" style="margin-top: 15px;"></div>
-        </div>
-    </div>
+<div id="app"></div>
 
-    <div id="battle-screen" class="screen">
-        <div class="battle-header">
-            <div>相手: <span id="opponent-name">???</span> (LP: <span id="opponent-lp">8000</span>) [コスト: <span id="opponent-cost">0</span>]</div>
-            <div id="battle-turn-indicator" style="font-weight: bold; color: var(--primary-color);">接続中...</div>
-            <div>自分: <span id="my-name">自分</span> (LP: <span id="my-lp">8000</span>) [コスト: <span id="my-cost">0</span>/<span id="my-max-cost">0</span>]</div>
-        </div>
-        <div class="battle-field" id="opponent-field"></div>
-        <div class="battle-field" id="my-field"></div>
-        
-        <div class="status-log" id="battle-log">対戦相手を待っています...</div>
 
-        <div class="battle-hand" id="my-hand"></div>
-        <div style="display: flex; justify-content: center; gap: 10px; background: #000; padding: 6px;">
-            <button class="btn btn-secondary" style="width: 130px; margin: 0; padding: 8px;" onclick="endTurn()">ターン終了</button>
-            <button class="btn btn-secondary" style="width: 130px; margin: 0; padding: 8px; background-color: #4a154b;" onclick="surrender()">降伏</button>
-        </div>
-    </div>
+<script src="main.js"></script>
 
 
 </body>
+
 </html>
