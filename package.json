@@ -1,7 +1,7 @@
 {
   "name": "errata-originality-server",
   "version": "1.0.0",
-  "description": "Online TCG Server",
+  "description": "Online TCG Server for Errata Originality",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
