@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>エラッタオリジナリティ - 全機能統合版</title>
+    <title>エラッタオリジナリティ - 完全版</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <style>
         :root {
@@ -35,7 +35,6 @@
             align-items: center;
             justify-content: center;
         }
-        /* 共通パネル・ボタン */
         .panel {
             background: var(--panel-bg);
             padding: 30px;
@@ -86,7 +85,7 @@
             box-sizing: border-box;
         }
 
-        /* ─── デッキ編集画面のレイアウト ─── */
+        /* デッキ編集画面のレイアウト */
         #deck-editor {
             display: none;
             padding: 20px;
@@ -150,17 +149,40 @@
             padding: 2px 6px;
         }
 
-        /* ─── 対戦画面のレイアウト ─── */
+        /* 対戦画面のレイアウト */
         #battle-screen {
             display: none;
             height: 100vh;
-            grid-template-rows: 80px 1fr 1fr 100px;
+            grid-template-rows: 80px 1fr 1fr 120px;
             background: #080811;
         }
         #battle-screen.active { display: grid; }
-        .battle-header { background: rgba(0, 0, 0, 0.8); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-        .battle-field { border-bottom: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .battle-hand { display: flex; justify-content: center; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.02); }
+        .battle-header { background: rgba(0, 0, 0, 0.8); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 10; }
+        .battle-field { border-bottom: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 15px; position: relative; }
+        .battle-hand { display: flex; justify-content: center; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 10px; }
+        .field-card {
+            width: 80px;
+            height: 110px;
+            border: 1px solid var(--border-color);
+            background-size: cover;
+            background-position: center;
+            border-radius: 6px;
+            position: relative;
+            cursor: pointer;
+            text-align: center;
+            font-size: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+        }
+        .field-card .card-atk-badge {
+            background: rgba(0,0,0,0.7);
+            border-radius: 3px;
+            padding: 2px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -178,7 +200,7 @@
 
             <button class="btn" onclick="startMatching()">オンライン対戦を探す</button>
             <button class="btn btn-secondary" onclick="openDeckEditor()">デッキ編集</button>
-            <div id="status-message" style="margin-top: 15px; color: #ffcc00;"></div>
+            <div id="status-message" style="margin-top: 15px; color: #ffcc00; font-size: 14px;"></div>
         </div>
     </div>
 
@@ -197,26 +219,53 @@
 
     <div id="battle-screen" class="screen">
         <div class="battle-header">
-            <div>相手: <span id="opponent-name">???</span> (LP: <span id="opponent-lp">8000</span>)</div>
-            <div>🆚 オンライン対戦中</div>
-            <div>自分: <span id="my-name">自分</span> (LP: <span id="my-lp">8000</span>)</div>
+            <div>相手: <span id="opponent-name">???</span> (LP: <span id="opponent-lp">8000</span>) [コスト: <span id="opponent-cost">0</span>]</div>
+            <div id="battle-turn-indicator">対戦開始準備中</div>
+            <div>自分: <span id="my-name">自分</span> (LP: <span id="my-lp">8000</span>) [コスト: <span id="my-cost">0</span>/<span id="my-max-cost">0</span>]</div>
         </div>
         <div class="battle-field" id="opponent-field"></div>
         <div class="battle-field" id="my-field"></div>
         <div class="battle-hand" id="my-hand">
-            <button class="btn btn-secondary" style="width: auto;" onclick="surrender()">降伏する</button>
+            </div>
+        <div style="display: flex; justify-content: center; gap: 10px; background: #000; padding: 5px;">
+            <button class="btn btn-secondary" style="width: 150px; margin: 0;" onclick="endTurn()">ターン終了</button>
+            <button class="btn btn-secondary" style="width: 150px; margin: 0; background-color: #551a8b;" onclick="surrender()">降伏する</button>
         </div>
     </div>
 
     <script>
         // ─── 設定と初期化 ───
-        const SERVER_URL = "https://あなたのRenderサーバーのURL.onrender.com"; // RenderのURLに書き換えてください！
+        const SERVER_URL = "https://あなたのRenderサーバーのURL.onrender.com"; // あなたのRenderサーバーURLに書き換えてください！
         let socket;
         let cardsDatabase = [];
         let myDeck = [];
         let profile = { name: "ゲスト" };
 
-        // 起動時に保存されたプロフィールとデッキを読み込む
+        // ゲーム進行用ステータス
+        let gameState = {
+            isMyTurn: false,
+            turnCount: 0,
+            myLP: 8000,
+            opponentLP: 8000,
+            myCost: 0,
+            myMaxCost: 0,
+            opponentCost: 0,
+            myHand: [],
+            myField: [],
+            opponentField: [],
+            myGraveyard: [],
+            opponentGraveyard: [],
+            isNextSummonFaceDown: false // 「仮面は正体を隠すもの」用フラグ
+        };
+
+        // ─── イラスト特性（ヒントを反映！） ───
+        const MOTIFS = {
+            gun: ["一般兵士", "いつの日かの飛鉄「佐貫」", "シュラフ・アリーナ", "自衛用拳銃"],
+            sword: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク"],
+            katana: ["小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ"],
+            blades: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク", "小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ", "氷結の地", "イソナ", "異界 of 聖槍ロンギヌス", "ラーツ・グローブ"]
+        };
+
         window.onload = async () => {
             loadLocalData();
             await loadCardsJSON();
@@ -269,7 +318,6 @@
             cardsDatabase.forEach(card => {
                 const item = document.createElement('div');
                 item.className = 'card-item';
-                // 画像がない場合のプレースホルダー
                 const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
                 item.innerHTML = `
                     <img src="${imgPath}" alt="${card.name}">
@@ -283,13 +331,12 @@
 
         function addCardToDeck(card) {
             const count = myDeck.filter(c => c.name === card.name).length;
-            // 同名カード3枚制限 (制限カード等は個別チェックを将来実装)
             let limit = 3;
             if (["これあげる", "小夜峰綾香", "シュラフ・アリーナ"].includes(card.name)) limit = 1;
             if (card.name === "ネズミ3.57864") limit = 2;
 
             if (count >= limit) {
-                return alert(`「${card.name}」はレギュレーションによりデッキに${limit}枚までしか入れられません。`);
+                return alert(`「${card.name}」はデッキに${limit}枚までしか入れられません。`);
             }
             if (myDeck.length >= 60) {
                 return alert("デッキは最大60枚までです。");
@@ -329,35 +376,34 @@
             switchScreen('home-screen');
         }
 
-        // ─── オンライン対戦システム (Socket.io) ───
+        // ─── オンライン対戦 ＆ 進行システム ───
         function startMatching() {
             if (myDeck.length < 35) {
                 return alert("デッキを35枚以上組んでから対戦に参加してください！");
             }
             document.getElementById('status-message').innerText = "対戦サーバーに接続中...";
             
-            // サーバーに接続開始
             socket = io(SERVER_URL);
 
             socket.on('connect', () => {
                 document.getElementById('status-message').innerText = "マッチング待機中... 相手を探しています。";
-                // サーバーにマッチング申請を送る
                 socket.emit('join-lobby', { name: profile.name, deckCount: myDeck.length });
             });
 
-            // マッチング成立時
             socket.on('match-found', (data) => {
-                document.getElementById('status-message').innerText = "対戦相手が見つかりました！対戦を開始します。";
+                document.getElementById('status-message').innerText = "対戦相手が見つかりました！";
                 document.getElementById('opponent-name').innerText = data.opponent.name;
                 document.getElementById('my-name').innerText = profile.name;
                 
+                // 先攻後攻の決定（自分の接続IDが辞書順で先なら先攻）
+                gameState.isMyTurn = socket.id < data.roomId;
+                
                 setTimeout(() => {
                     switchScreen('battle-screen');
-                    startBattle();
+                    initBattle();
                 }, 2000);
             });
 
-            // 相手のアクションを受信
             socket.on('game-action', (action) => {
                 handleOpponentAction(action);
             });
@@ -368,34 +414,357 @@
             });
         }
 
-        function startBattle() {
-            // ここから対戦の描画や手札を引くロジックが始まります
-            alert("バトルスタート！(お互いの通信同期の準備ができました)");
+        // 対戦初期化
+        function initBattle() {
+            gameState.myLP = 8000;
+            gameState.opponentLP = 8000;
+            gameState.myMaxCost = gameState.isMyTurn ? 1 : 0; // 先攻はコスト1から開始
+            gameState.myCost = gameState.myMaxCost;
+            gameState.myHand = [];
+            gameState.myField = [];
+            gameState.opponentField = [];
+            gameState.myGraveyard = [];
+            gameState.opponentGraveyard = [];
+
+            // 山札をシャッフル
+            gameState.myDeckArray = [...myDeck];
+            shuffle(gameState.myDeckArray);
+
+            // 初期手札を5枚ドロー
+            for (let i = 0; i < 5; i++) {
+                drawCard();
+            }
+
+            updateUI();
+            startTurn();
         }
 
-        function sendGameAction(actionType, detail) {
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // ドロー処理
+        function drawCard() {
+            if (gameState.myDeckArray.length > 0) {
+                const card = gameState.myDeckArray.shift();
+                gameState.myHand.push(card);
+            } else {
+                alert("デッキ切れにより敗北しました。");
+                surrender();
+            }
+        }
+
+        // UI同期更新
+        function updateUI() {
+            document.getElementById('my-lp').innerText = gameState.myLP;
+            document.getElementById('opponent-lp').innerText = gameState.opponentLP;
+            document.getElementById('my-cost').innerText = gameState.myCost;
+            document.getElementById('my-max-cost').innerText = gameState.myMaxCost;
+            document.getElementById('opponent-cost').innerText = gameState.opponentCost;
+
+            document.getElementById('battle-turn-indicator').innerText = gameState.isMyTurn ? "あなたのターン" : "相手のターン";
+
+            // 手札の描画
+            const handContainer = document.getElementById('my-hand');
+            handContainer.innerHTML = "";
+            gameState.myHand.forEach((card, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'card-item';
+                btn.style.width = '80px';
+                btn.style.height = '110px';
+                btn.style.fontSize = '9px';
+                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
+                btn.innerHTML = `
+                    <img src="${imgPath}" style="width:100%; height:50px; border-radius:4px;">
+                    <strong>${card.name}</strong><br>コスト:${card.cost}
+                `;
+                btn.onclick = () => playCard(index);
+                handContainer.appendChild(btn);
+            });
+
+            // 自分のフィールド描画
+            const myFieldContainer = document.getElementById('my-field');
+            myFieldContainer.innerHTML = "";
+            gameState.myField.forEach((card, index) => {
+                const div = document.createElement('div');
+                div.className = 'field-card';
+                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
+                div.style.backgroundImage = `url(${imgPath})`;
+                div.innerHTML = `
+                    <strong>${card.isFaceDown ? "裏向き" : card.name}</strong>
+                    ${card.atk ? `<span class="card-atk-badge">ATK:${card.atk}</span>` : ''}
+                `;
+                div.onclick = () => attackWithMonster(index);
+                myFieldContainer.appendChild(div);
+            });
+
+            // 相手のフィールド描画
+            const oppFieldContainer = document.getElementById('opponent-field');
+            oppFieldContainer.innerHTML = "";
+            gameState.opponentField.forEach((card, index) => {
+                const div = document.createElement('div');
+                div.className = 'field-card';
+                const imgPath = card.isFaceDown ? 'https://via.placeholder.com/140x200?text=FaceDown' : (card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image');
+                div.style.backgroundImage = `url(${imgPath})`;
+                div.innerHTML = `
+                    <strong>${card.isFaceDown ? "裏向き" : card.name}</strong>
+                    ${card.atk && !card.isFaceDown ? `<span class="card-atk-badge">ATK:${card.atk}</span>` : ''}
+                `;
+                oppFieldContainer.appendChild(div);
+            });
+        }
+
+        // ターン開始処理
+        function startTurn() {
+            if (gameState.isMyTurn) {
+                gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 1);
+                gameState.myCost = gameState.myMaxCost;
+                drawCard();
+                updateUI();
+                sendGameAction('sync-state', { maxCost: gameState.myMaxCost, cost: gameState.myCost });
+            }
+        }
+
+        function endTurn() {
+            if (!gameState.isMyTurn) return;
+            gameState.isMyTurn = false;
+            updateUI();
+            sendGameAction('end-turn', {});
+        }
+
+        // ─── カードのプレイと効果発動 ───
+        function playCard(handIndex) {
+            if (!gameState.isMyTurn) return alert("あなたのターンではありません！");
+            const card = gameState.myHand[handIndex];
+
+            if (gameState.myCost < card.cost) {
+                return alert("コストが足りません！");
+            }
+
+            gameState.myCost -= card.cost;
+            gameState.myHand.splice(handIndex, 1);
+
+            let playedCard = { ...card, isFaceDown: gameState.isNextSummonFaceDown };
+            gameState.isNextSummonFaceDown = false; // 1回きりのためリセット
+
+            if (card.type === "モンスター") {
+                gameState.myField.push(playedCard);
+            } else {
+                // 魔法・トラップは発動後、即座に墓地送り
+                gameState.myGraveyard.push(playedCard);
+            }
+
+            // カード効果発動判定
+            triggerCardEffect(playedCard, true);
+
+            updateUI();
+            sendGameAction('play-card', { card: playedCard });
+        }
+
+        // モンスター攻撃処理
+        function attackWithMonster(myIndex) {
+            if (!gameState.isMyTurn) return alert("あなたのターンではありません！");
+            const monster = gameState.myField[myIndex];
+            if (monster.type !== "モンスター") return;
+
+            // ネズミ3.57864（SA持ち）は即攻撃可能。その他は簡易的に常時攻撃可能設定
+            const target = prompt("攻撃対象を選択してください。\n0: 相手プレイヤー\nまたは相手のモンスター番号(1〜)");
+            if (target === null) return;
+
+            const targetNum = parseInt(target);
+            if (targetNum === 0) {
+                // 直接攻撃
+                gameState.opponentLP = Math.max(0, gameState.opponentLP - monster.atk);
+                alert(`相手プレイヤーに ${monster.atk} ダメージ！`);
+                sendGameAction('sync-lp', { opponentLP: gameState.opponentLP });
+            } else {
+                // モンスター同士のバトル
+                const oppIndex = targetNum - 1;
+                if (oppIndex >= 0 && oppIndex < gameState.opponentField.length) {
+                    const oppMonster = gameState.opponentField[oppIndex];
+                    alert(`${monster.name} が ${oppMonster.name} に攻撃！`);
+
+                    if (monster.atk > oppMonster.atk) {
+                        alert(`${oppMonster.name} を破壊しました！`);
+                        sendGameAction('destroy-monster', { oppIndex: oppIndex });
+                    } else if (monster.atk < oppMonster.atk) {
+                        alert(`${monster.name} が返り討ちに遭いました...`);
+                        gameState.myField.splice(myIndex, 1);
+                    } else {
+                        alert("相打ちになりました！");
+                        gameState.myField.splice(myIndex, 1);
+                        sendGameAction('destroy-monster', { oppIndex: oppIndex });
+                    }
+                }
+            }
+            updateUI();
+        }
+
+        // ─── 完全版効果エンジン ───
+        function triggerCardEffect(card, isMyEffect) {
+            const player = isMyEffect ? "me" : "opponent";
+            const opponent = isMyEffect ? "opponent" : "me";
+
+            switch (card.name) {
+                case "マネネ":
+                    damageLP(opponent, 800);
+                    break;
+                case "参拝":
+                    healLP(player, 500);
+                    break;
+                case "ケニファー":
+                    healLP(player, 700);
+                    gameState.myCost = Math.min(10, gameState.myCost + 1);
+                    break;
+                case "白翼の大天使ラファエル":
+                    healLP(player, 1000);
+                    if (isMyEffect) drawCard();
+                    break;
+                case "蓮の葉ハスター":
+                    healLP(player, 500);
+                    break;
+                case "次回策":
+                    if (isMyEffect) {
+                        drawCard();
+                        drawCard();
+                    }
+                    break;
+                case "やり直し":
+                    if (isMyEffect) {
+                        // 自分の場と手札をすべて山札に戻して5枚ドロー
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
+                        gameState.myHand = [];
+                        gameState.myField = [];
+                        shuffle(gameState.myDeckArray);
+                        for (let i = 0; i < 5; i++) drawCard();
+                        sendGameAction('reset-field', {});
+                    }
+                    break;
+                case "また0から":
+                    // お互いにすべて戻して5枚ドロー
+                    alert("世界の時が巻き戻る...！ お互いのカードを山札に戻し5ドローします。");
+                    if (isMyEffect) {
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
+                        gameState.myHand = [];
+                        gameState.myField = [];
+                        shuffle(gameState.myDeckArray);
+                        for (let i = 0; i < 5; i++) drawCard();
+                        sendGameAction('reset-field', { forceOpponentReset: true });
+                    }
+                    break;
+                case "寝る子は育つって誰かが言ってた":
+                    if (isMyEffect) {
+                        gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 2);
+                        gameState.myCost = gameState.myMaxCost;
+                        endTurn();
+                    }
+                    break;
+                case "仮面は正体を隠すもの":
+                    if (isMyEffect) {
+                        gameState.isNextSummonFaceDown = true;
+                        alert("次のモンスター召喚を裏向きで行うことができます！");
+                    }
+                    break;
+                default:
+                    console.log(`${card.name} の効果を適用しました（特殊条件、アタック・墓地条件は手動または特定タイミングで適用）。`);
+                    break;
+            }
+        }
+
+        function healLP(target, amount) {
+            if (target === "me") {
+                gameState.myLP += amount;
+            } else {
+                gameState.opponentLP += amount;
+            }
+            updateUI();
+        }
+
+        function damageLP(target, amount) {
+            if (target === "me") {
+                gameState.myLP = Math.max(0, gameState.myLP - amount);
+                if (gameState.myLP <= 0) {
+                    alert("あなたのLPが0になりました。敗北です。");
+                    location.reload();
+                }
+            } else {
+                gameState.opponentLP = Math.max(0, gameState.opponentLP - amount);
+                if (gameState.opponentLP <= 0) {
+                    alert("相手のLPが0になりました！あなたの勝利です！");
+                    location.reload();
+                }
+            }
+            updateUI();
+        }
+
+        // ─── 通信イベント受信制御 ───
+        function sendGameAction(type, detail) {
             if (socket) {
-                socket.emit('game-action', { type: actionType, detail: detail });
+                socket.emit('game-action', { type: type, detail: detail });
             }
         }
 
         function handleOpponentAction(action) {
-            console.log("相手から届いたデータ:", action);
-            if (action.type === 'surrender') {
-                alert("相手が降伏しました！あなたの勝利です！");
-                location.reload();
+            console.log("相手からデータ受信:", action);
+            const detail = action.detail;
+
+            switch (action.type) {
+                case 'sync-state':
+                    gameState.opponentCost = detail.cost;
+                    updateUI();
+                    break;
+                case 'play-card':
+                    gameState.opponentField.push(detail.card);
+                    // 相手がプレイしたカードの効果を発動（isMyEffect = false）
+                    triggerCardEffect(detail.card, false);
+                    updateUI();
+                    break;
+                case 'end-turn':
+                    gameState.isMyTurn = true;
+                    startTurn();
+                    break;
+                case 'destroy-monster':
+                    gameState.myField.splice(detail.oppIndex, 1);
+                    updateUI();
+                    break;
+                case 'sync-lp':
+                    gameState.myLP = detail.opponentLP;
+                    if (gameState.myLP <= 0) {
+                        alert("敗北しました。");
+                        location.reload();
+                    }
+                    updateUI();
+                    break;
+                case 'reset-field':
+                    gameState.opponentField = [];
+                    if (detail.forceOpponentReset) {
+                        // 自分も強制リセット
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
+                        gameState.myHand = [];
+                        gameState.myField = [];
+                        shuffle(gameState.myDeckArray);
+                        for (let i = 0; i < 5; i++) drawCard();
+                    }
+                    updateUI();
+                    break;
+                case 'surrender':
+                    alert("相手が降伏しました！あなたの勝利です！");
+                    location.reload();
+                    break;
             }
         }
 
         function surrender() {
             if (confirm("本当に降伏しますか？")) {
                 sendGameAction('surrender', {});
-                alert("降伏しました。敗北です。");
+                alert("敗北しました。");
                 location.reload();
             }
         }
 
-        // 画面切り替え用
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
