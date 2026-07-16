@@ -38,7 +38,30 @@ function battle(attacker, defender, attackerOwner, defenderOwner){
 
     else{
 
+
+    if(canDirectAttack(defenderOwner)){
+
+
         defenderOwner.lp -= attacker.atk;
+
+
+        console.log(
+            attacker.name + "の直接攻撃"
+        );
+
+
+    }
+    else{
+
+
+        console.log(
+            "相手モンスターが存在するため直接攻撃不可"
+        );
+
+
+    }
+
+}
 
     }
 
@@ -59,5 +82,158 @@ function destroyCard(card, owner){
 
 
     owner.graveyard.push(card);
+
+}
+
+// カード破壊処理
+
+function destroyCard(card, owner){
+
+    let index = owner.field.indexOf(card);
+
+
+    if(index !== -1){
+
+        owner.field.splice(index,1);
+
+    }
+
+
+    owner.graveyard.push(card);
+
+
+}
+
+
+
+// LP確認
+
+function checkWin(player1, player2){
+
+
+    if(player1.lp <= 0){
+
+        return player2.name + "の勝利";
+
+    }
+
+
+    if(player2.lp <= 0){
+
+        return player1.name + "の勝利";
+
+    }
+
+
+    return null;
+
+
+}
+
+
+// 攻撃可能チェック
+
+function canAttack(card){
+
+    // SA持ちなら召喚ターンでも攻撃可能
+    if(card.sa){
+
+        return true;
+
+    }
+
+
+    // 召喚ターンなら攻撃不可
+    if(card.summonedTurn === true){
+
+        return false;
+
+    }
+
+
+    // それ以外は攻撃可能
+    return true;
+
+}
+
+
+
+// 攻撃後の処理
+
+function afterAttack(card){
+
+    card.attacked = true;
+
+}
+
+
+
+// ターン開始時のリセット
+
+function resetAttack(player){
+
+    for(let card of player.field){
+
+        card.attacked = false;
+        card.summonedTurn = false;
+
+    }
+
+}
+
+// ブロッカー処理
+
+function checkBlocker(attacker, target, enemyField){
+
+    // すでに攻撃対象がブロッカーならそのまま
+
+    if(target && target.blocker){
+
+        return target;
+
+    }
+
+
+    // 場にいるブロッカーを探す
+
+    for(let card of enemyField){
+
+        if(card.blocker){
+
+            // 攻撃側がブロッカー無効を持っている場合
+            if(attacker.blockerIgnore){
+
+                continue;
+
+            }
+
+
+            return card;
+
+        }
+
+    }
+
+
+    // ブロッカーなし
+
+    return target;
+
+}
+
+// 直接攻撃可能か確認
+
+function canDirectAttack(defenderPlayer){
+
+    // 相手の場にモンスターがいるなら不可
+
+    if(defenderPlayer.field.length > 0){
+
+        return false;
+
+    }
+
+
+    return true;
 
 }
