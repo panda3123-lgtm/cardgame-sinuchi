@@ -4,6 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>エラッタオリジナリティ</title>
@@ -16,11 +17,336 @@
 <body>
 
 
-<div id="app"></div>
+<!-- =====================
+     タイトル画面
+===================== -->
+
+<div id="title-screen" class="screen active">
 
 
-<script src="deck.js"></script>
-<script src="main.js"></script>
+    <h1>
+        エラッタオリジナリティ
+    </h1>
+
+
+    <button onclick="goMenu()">
+        START
+    </button>
+
+
+</div>
+
+
+
+
+
+<!-- =====================
+     メニュー画面
+===================== -->
+
+<div id="menu-screen" class="screen">
+
+
+    <h2>
+        メニュー
+    </h2>
+
+
+
+    <button onclick="startMatching()">
+        オンライン対戦
+    </button>
+
+
+
+    <button onclick="startAI()">
+        AI対戦
+    </button>
+
+
+
+    <button onclick="openDeckEditor()">
+        デッキ編成
+    </button>
+
+
+</div>
+
+
+
+
+
+<!-- =====================
+     デッキ編集
+===================== -->
+
+<div id="deck-editor" class="screen">
+
+
+    <h2>
+        デッキ編成
+    </h2>
+
+
+
+    <h3>
+        カード一覧
+    </h3>
+
+
+    <div id="card-list">
+
+    </div>
+
+
+
+
+    <h3>
+        現在のデッキ
+    </h3>
+
+
+    <div id="deck-list">
+
+    </div>
+
+
+
+    <button onclick="saveDeck()">
+        保存
+    </button>
+
+
+
+    <button onclick="closeDeckEditor()">
+        戻る
+    </button>
+
+
+</div>
+
+
+
+
+
+<!-- =====================
+     対戦画面
+===================== -->
+
+<div id="battle-screen" class="screen">
+
+
+<h2>
+    対戦
+</h2>
+
+
+
+
+<!-- 相手情報 -->
+
+<div id="enemy-info">
+
+    相手LP:
+
+    <span id="enemy-lp">
+        8000
+    </span>
+
+</div>
+
+
+
+
+
+<!-- 相手フィールド -->
+
+<h3>
+    相手フィールド
+</h3>
+
+
+<div id="enemy-field">
+
+</div>
+
+
+
+<div id="enemy-grave">
+
+    相手墓地
+
+</div>
+
+
+
+
+
+
+
+<!-- ターン -->
+
+<div id="turn-info">
+
+    ターン:
+
+    <span id="turn-player">
+
+    </span>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- 自分フィールド -->
+
+<h3>
+    自分フィールド
+</h3>
+
+
+<div id="my-field">
+
+</div>
+
+
+<div id="my-grave">
+
+    自分墓地
+
+</div>
+
+
+
+
+
+
+<!-- 自分情報 -->
+
+<div id="my-info">
+
+
+    自分LP:
+
+    <span id="my-lp">
+        8000
+    </span>
+
+
+    <br>
+
+
+    コスト:
+
+
+    <span id="my-cost">
+        0
+    </span>
+
+
+    /
+
+
+    <span id="my-max-cost">
+        0
+    </span>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- 手札 -->
+
+<h3>
+    手札
+</h3>
+
+
+<div id="my-hand">
+
+</div>
+
+
+
+
+
+
+
+<!-- 操作 -->
+
+<button onclick="endTurn()">
+
+    ターン終了
+
+</button>
+
+
+
+
+
+
+
+<!-- ログ -->
+
+<h3>
+    ログ
+</h3>
+
+
+<div id="game-log">
+
+</div>
+
+
+
+
+
+
+
+<!-- 確認ウィンドウ -->
+
+<div id="confirm-window">
+
+
+    <p id="confirm-text">
+
+    </p>
+
+
+
+    <button onclick="confirmPlay()">
+        実行
+    </button>
+
+
+
+    <button onclick="cancelPlay()">
+        キャンセル
+    </button>
+
+
+</div>
+
+
+
+
+</div>
+
+
+
+
+
+<script src="script.js"></script>
 
 
 </body>
