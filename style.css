@@ -2,7 +2,12 @@ body{
 
     margin:0;
 
+    width:100vw;
     height:100vh;
+
+    background:#111;
+
+    color:white;
 
     display:flex;
 
@@ -10,17 +15,13 @@ body{
 
     align-items:center;
 
-    background:#111;
-
-    color:white;
-
     font-family:sans-serif;
 
 }
 
 
 
-.title{
+#app{
 
     text-align:center;
 
@@ -30,7 +31,9 @@ body{
 
 h1{
 
-    font-size:50px;
+    font-size:48px;
+
+    margin-bottom:50px;
 
 }
 
@@ -38,9 +41,17 @@ h1{
 
 button{
 
-    font-size:25px;
+    display:block;
 
-    padding:15px 50px;
+    width:300px;
+
+    margin:20px auto;
+
+    padding:15px;
+
+    font-size:24px;
+
+    border-radius:10px;
 
     cursor:pointer;
 
