@@ -8,7 +8,8 @@ const app = document.getElementById("app");
 
 
 
-// 画面切り替え
+
+// 画面変更
 
 function changeScene(next){
 
@@ -20,6 +21,7 @@ function changeScene(next){
 
 
 
+
 // 描画
 
 function render(){
@@ -27,14 +29,21 @@ function render(){
 
     if(scene === "title"){
 
-        titleScreen();
+        showTitle();
 
     }
 
 
     else if(scene === "menu"){
 
-        menuScreen();
+        showMenu();
+
+    }
+
+
+    else if(scene === "deck"){
+
+        deckScreen();
 
     }
 
@@ -43,9 +52,12 @@ function render(){
 
 
 
-// タイトル画面
 
-function titleScreen(){
+
+
+// タイトル
+
+function showTitle(){
 
 
     app.innerHTML = `
@@ -71,9 +83,11 @@ function titleScreen(){
 
 
 
-// メニュー画面
 
-function menuScreen(){
+
+// メニュー
+
+function showMenu(){
 
 
     app.innerHTML = `
@@ -84,6 +98,7 @@ function menuScreen(){
     </h1>
 
 
+
     <button onclick="battleStart()">
 
     対戦開始
@@ -92,7 +107,7 @@ function menuScreen(){
 
 
 
-    <button onclick="deckEdit()">
+    <button onclick="changeScene('deck')">
 
     デッキ編成
 
@@ -115,6 +130,7 @@ function menuScreen(){
     </button>
 
 
+
     `;
 
 
@@ -123,46 +139,60 @@ function menuScreen(){
 
 
 
-// 仮ボタン
+
+
+
+// 対戦
 
 function battleStart(){
 
-    alert("対戦画面は後で作成");
 
-}
-
-
-
-function deckEdit(){
-
-    changeScene("deck");
-
+    alert(
+    "対戦機能は次の段階で追加します"
+    );
 
 
 }
 
 
+
+
+
+
+// カード一覧
 
 function cardList(){
 
-    alert("カード一覧は後で作成");
+
+    alert(
+    "カード一覧は後で追加します"
+    );
+
 
 }
 
 
+
+
+
+
+// 設定
 
 function setting(){
 
-    alert("設定は後で作成");
+
+    alert(
+    "設定は後で追加します"
+    );
+
 
 }
+
+
+
 
 
 
 // 起動
 
-render(else if(scene === "deck"){
-
-    deckScreen();
-
-});
+render();
