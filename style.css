@@ -23,6 +23,10 @@ body{
 
 #app{
 
+    width:90%;
+
+    max-width:1000px;
+
     text-align:center;
 
 }
@@ -33,7 +37,7 @@ h1{
 
     font-size:48px;
 
-    margin-bottom:50px;
+    margin-bottom:40px;
 
 }
 
@@ -45,14 +49,54 @@ button{
 
     width:300px;
 
-    margin:20px auto;
+    margin:15px auto;
 
     padding:15px;
 
-    font-size:24px;
+    font-size:22px;
 
     border-radius:10px;
 
     cursor:pointer;
+
+}
+
+
+
+.cardList{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
+
+    gap:10px;
+
+    max-height:500px;
+
+    overflow-y:auto;
+
+}
+
+
+
+.card{
+
+    border:1px solid white;
+
+    padding:10px;
+
+    cursor:pointer;
+
+}
+
+
+
+.deckArea{
+
+    margin-top:20px;
+
+    border:1px solid white;
+
+    padding:10px;
 
 }
