@@ -3,41 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>エラッタオリジナリティ</title>
+    <title>エラッタオリジナリティ - 全機能統合版</title>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <style>
+        :root {
+            --bg-color: #0d0d1a;
+            --panel-bg: rgba(255, 255, 255, 0.07);
+            --primary-color: #ff007f;
+            --primary-hover: #e0006c;
+            --secondary-color: #1f4068;
+            --text-color: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.2);
+        }
         body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a2e;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            overflow-x: hidden;
         }
-        .menu-container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 共通パネル・ボタン */
+        .panel {
+            background: var(--panel-bg);
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 320px;
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
         }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 30px;
+        h1, h2 {
+            margin-top: 0;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px #ff007f;
+            text-shadow: 0 0 10px var(--primary-color);
         }
         .btn {
             display: block;
             width: 100%;
-            padding: 15px;
-            margin: 15px 0;
-            background: #ff007f;
+            padding: 12px;
+            margin: 10px 0;
+            background: var(--primary-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -49,40 +69,336 @@
             box-sizing: border-box;
         }
         .btn:hover {
-            background: #e0006c;
+            background: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(255, 0, 127, 0.4);
         }
-        .btn-secondary {
-            background: #1f4068;
+        .btn-secondary { background: var(--secondary-color); }
+        .btn-secondary:hover { background: #162447; }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            box-sizing: border-box;
         }
-        .btn-secondary:hover {
-            background: #162447;
-            box-shadow: 0 5px 15px rgba(31, 64, 104, 0.4);
+
+        /* ─── デッキ編集画面のレイアウト ─── */
+        #deck-editor {
+            display: none;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
+        #deck-editor.active {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .card-pool, .my-deck {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            height: 80vh;
+            overflow-y: auto;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .card-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .card-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(255, 0, 127, 0.1);
+        }
+        .card-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .deck-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .remove-btn {
+            background: #ff3333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        /* ─── 対戦画面のレイアウト ─── */
+        #battle-screen {
+            display: none;
+            height: 100vh;
+            grid-template-rows: 80px 1fr 1fr 100px;
+            background: #080811;
+        }
+        #battle-screen.active { display: grid; }
+        .battle-header { background: rgba(0, 0, 0, 0.8); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        .battle-field { border-bottom: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .battle-hand { display: flex; justify-content: center; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.02); }
     </style>
 </head>
 <body>
 
-    <div class="menu-container">
-        <h1>ERRATA<br>ORIGINALITY</h1>
-        <button class="btn" onclick="alert('対戦機能は開発中です！')">オンライン対戦</button>
-        <button class="btn btn-secondary" onclick="alert('デッキ編集機能は開発中です！')">デッキ編集</button>
-        <button class="btn btn-secondary" onclick="loadCardsTest()">カードデータ確認</button>
+    <div id="home-screen" class="screen active">
+        <div class="panel">
+            <h1>ERRATA ORIGINALITY</h1>
+            
+            <div style="margin: 20px 0; text-align: left;">
+                <label>👤 プレイヤー名:</label>
+                <input type="text" id="username-input" placeholder="名前を入力してください">
+                <button class="btn btn-secondary" onclick="saveProfile()">プロフィール保存</button>
+                <p id="profile-status" style="font-size: 12px; color: #00ffcc; text-align: center;"></p>
+            </div>
+
+            <button class="btn" onclick="startMatching()">オンライン対戦を探す</button>
+            <button class="btn btn-secondary" onclick="openDeckEditor()">デッキ編集</button>
+            <div id="status-message" style="margin-top: 15px; color: #ffcc00;"></div>
+        </div>
+    </div>
+
+    <div id="deck-editor" class="screen">
+        <div class="card-pool">
+            <h2>カードプール（クリックで追加）</h2>
+            <div class="card-grid" id="pool-grid"></div>
+        </div>
+        <div class="my-deck">
+            <h2>マイデッキ (<span id="deck-count">0</span>/60)</h2>
+            <button class="btn" onclick="saveDeck()">デッキを保存して戻る</button>
+            <button class="btn btn-secondary" onclick="closeDeckEditor()">保存せずに戻る</button>
+            <div id="deck-list-container" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <div id="battle-screen" class="screen">
+        <div class="battle-header">
+            <div>相手: <span id="opponent-name">???</span> (LP: <span id="opponent-lp">8000</span>)</div>
+            <div>🆚 オンライン対戦中</div>
+            <div>自分: <span id="my-name">自分</span> (LP: <span id="my-lp">8000</span>)</div>
+        </div>
+        <div class="battle-field" id="opponent-field"></div>
+        <div class="battle-field" id="my-field"></div>
+        <div class="battle-hand" id="my-hand">
+            <button class="btn btn-secondary" style="width: auto;" onclick="surrender()">降伏する</button>
+        </div>
     </div>
 
     <script>
-        // cards.json が正しく読み込めるかテストする関数
-        async function loadCardsTest() {
+        // ─── 設定と初期化 ───
+        const SERVER_URL = "https://あなたのRenderサーバーのURL.onrender.com"; // RenderのURLに書き換えてください！
+        let socket;
+        let cardsDatabase = [];
+        let myDeck = [];
+        let profile = { name: "ゲスト" };
+
+        // 起動時に保存されたプロフィールとデッキを読み込む
+        window.onload = async () => {
+            loadLocalData();
+            await loadCardsJSON();
+        };
+
+        function loadLocalData() {
+            const savedProfile = localStorage.getItem('eo_profile');
+            if (savedProfile) {
+                profile = JSON.parse(savedProfile);
+                document.getElementById('username-input').value = profile.name;
+                document.getElementById('profile-status').innerText = `おかえりなさい、${profile.name} さん！`;
+            }
+            const savedDeck = localStorage.getItem('eo_deck');
+            if (savedDeck) {
+                myDeck = JSON.parse(savedDeck);
+            }
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('username-input').value.trim();
+            if (!name) return alert("名前を入力してください！");
+            profile.name = name;
+            localStorage.setItem('eo_profile', JSON.stringify(profile));
+            document.getElementById('profile-status').innerText = "プロフィールを保存しました！";
+        }
+
+        async function loadCardsJSON() {
             try {
                 const response = await fetch('cards.json');
-                const cards = await response.json();
-                alert(`cards.json の読み込みに成功しました！\n登録されているカード数: ${cards.length} 枚`);
-                console.log(cards);
-            } catch (error) {
-                alert('cards.json の読み込みに失敗しました。ファイルが同じ場所にあるか確認してください。');
-                console.error(error);
+                cardsDatabase = await response.json();
+            } catch (e) {
+                console.error("cards.json の読み込みに失敗:", e);
             }
+        }
+
+        // ─── デッキ編集システム ───
+        function openDeckEditor() {
+            switchScreen('deck-editor');
+            renderCardPool();
+            renderMyDeck();
+        }
+
+        function closeDeckEditor() {
+            switchScreen('home-screen');
+        }
+
+        function renderCardPool() {
+            const grid = document.getElementById('pool-grid');
+            grid.innerHTML = "";
+            cardsDatabase.forEach(card => {
+                const item = document.createElement('div');
+                item.className = 'card-item';
+                // 画像がない場合のプレースホルダー
+                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
+                item.innerHTML = `
+                    <img src="${imgPath}" alt="${card.name}">
+                    <strong>${card.name}</strong><br>
+                    コスト:${card.cost} / ATK:${card.atk || '-'}
+                `;
+                item.onclick = () => addCardToDeck(card);
+                grid.appendChild(item);
+            });
+        }
+
+        function addCardToDeck(card) {
+            const count = myDeck.filter(c => c.name === card.name).length;
+            // 同名カード3枚制限 (制限カード等は個別チェックを将来実装)
+            let limit = 3;
+            if (["これあげる", "小夜峰綾香", "シュラフ・アリーナ"].includes(card.name)) limit = 1;
+            if (card.name === "ネズミ3.57864") limit = 2;
+
+            if (count >= limit) {
+                return alert(`「${card.name}」はレギュレーションによりデッキに${limit}枚までしか入れられません。`);
+            }
+            if (myDeck.length >= 60) {
+                return alert("デッキは最大60枚までです。");
+            }
+
+            myDeck.push(card);
+            renderMyDeck();
+        }
+
+        function removeCardFromDeck(index) {
+            myDeck.splice(index, 1);
+            renderMyDeck();
+        }
+
+        function renderMyDeck() {
+            const container = document.getElementById('deck-list-container');
+            container.innerHTML = "";
+            document.getElementById('deck-count').innerText = myDeck.length;
+
+            myDeck.forEach((card, index) => {
+                const div = document.createElement('div');
+                div.className = 'deck-list-item';
+                div.innerHTML = `
+                    <span>${card.name} (コスト:${card.cost})</span>
+                    <button class="remove-btn" onclick="removeCardFromDeck(${index})">削除</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function saveDeck() {
+            if (myDeck.length < 35 || myDeck.length > 60) {
+                return alert("デッキ枚数は35枚〜60枚に調整してください！");
+            }
+            localStorage.setItem('eo_deck', JSON.stringify(myDeck));
+            alert("デッキを保存しました！");
+            switchScreen('home-screen');
+        }
+
+        // ─── オンライン対戦システム (Socket.io) ───
+        function startMatching() {
+            if (myDeck.length < 35) {
+                return alert("デッキを35枚以上組んでから対戦に参加してください！");
+            }
+            document.getElementById('status-message').innerText = "対戦サーバーに接続中...";
+            
+            // サーバーに接続開始
+            socket = io(SERVER_URL);
+
+            socket.on('connect', () => {
+                document.getElementById('status-message').innerText = "マッチング待機中... 相手を探しています。";
+                // サーバーにマッチング申請を送る
+                socket.emit('join-lobby', { name: profile.name, deckCount: myDeck.length });
+            });
+
+            // マッチング成立時
+            socket.on('match-found', (data) => {
+                document.getElementById('status-message').innerText = "対戦相手が見つかりました！対戦を開始します。";
+                document.getElementById('opponent-name').innerText = data.opponent.name;
+                document.getElementById('my-name').innerText = profile.name;
+                
+                setTimeout(() => {
+                    switchScreen('battle-screen');
+                    startBattle();
+                }, 2000);
+            });
+
+            // 相手のアクションを受信
+            socket.on('game-action', (action) => {
+                handleOpponentAction(action);
+            });
+
+            socket.on('opponent-disconnected', () => {
+                alert("相手の接続が切れました。あなたの不戦勝です！");
+                location.reload();
+            });
+        }
+
+        function startBattle() {
+            // ここから対戦の描画や手札を引くロジックが始まります
+            alert("バトルスタート！(お互いの通信同期の準備ができました)");
+        }
+
+        function sendGameAction(actionType, detail) {
+            if (socket) {
+                socket.emit('game-action', { type: actionType, detail: detail });
+            }
+        }
+
+        function handleOpponentAction(action) {
+            console.log("相手から届いたデータ:", action);
+            if (action.type === 'surrender') {
+                alert("相手が降伏しました！あなたの勝利です！");
+                location.reload();
+            }
+        }
+
+        function surrender() {
+            if (confirm("本当に降伏しますか？")) {
+                sendGameAction('surrender', {});
+                alert("降伏しました。敗北です。");
+                location.reload();
+            }
+        }
+
+        // 画面切り替え用
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
         }
     </script>
 </body>
