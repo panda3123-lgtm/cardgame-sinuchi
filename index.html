@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>エラッタオリジナリティ - 完全版</title>
+    <title>エラッタオリジナリティ - 新・完全版</title>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <style>
         :root {
-            --bg-color: #0d0d1a;
-            --panel-bg: rgba(255, 255, 255, 0.07);
+            --bg-color: #0a0a14;
+            --panel-bg: rgba(255, 255, 255, 0.05);
             --primary-color: #ff007f;
             --primary-hover: #e0006c;
-            --secondary-color: #1f4068;
-            --text-color: #ffffff;
-            --border-color: rgba(255, 255, 255, 0.2);
+            --secondary-color: #1a365d;
+            --text-color: #f7fafc;
+            --border-color: rgba(255, 255, 255, 0.15);
         }
         body {
             margin: 0;
@@ -38,18 +38,18 @@
         .panel {
             background: var(--panel-bg);
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
             width: 90%;
-            max-width: 500px;
+            max-width: 480px;
             text-align: center;
         }
         h1, h2 {
             margin-top: 0;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--primary-color);
+            text-shadow: 0 0 8px var(--primary-color);
         }
         .btn {
             display: block;
@@ -59,28 +59,28 @@
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
-            text-decoration: none;
+            transition: all 0.2s ease;
             box-sizing: border-box;
         }
         .btn:hover {
             background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 0, 127, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(255, 0, 127, 0.3);
         }
         .btn-secondary { background: var(--secondary-color); }
-        .btn-secondary:hover { background: #162447; }
+        .btn-secondary:hover { background: #122544; }
+        
         input[type="text"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             color: white;
             box-sizing: border-box;
         }
@@ -100,29 +100,28 @@
         .card-pool, .my-deck {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 15px;
-            height: 80vh;
+            height: 85vh;
             overflow-y: auto;
         }
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
         }
         .card-item {
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 8px;
             font-size: 11px;
             cursor: pointer;
             transition: 0.2s;
-            position: relative;
         }
         .card-item:hover {
             border-color: var(--primary-color);
-            background: rgba(255, 0, 127, 0.1);
+            background: rgba(255, 0, 127, 0.08);
         }
         .card-item img {
             width: 100%;
@@ -134,39 +133,40 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            background: rgba(0, 0, 0, 0.25);
             margin-bottom: 5px;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 12px;
         }
         .remove-btn {
-            background: #ff3333;
+            background: #e53e3e;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 3px;
             cursor: pointer;
-            padding: 2px 6px;
+            padding: 2px 5px;
         }
 
         /* 対戦画面 */
         #battle-screen {
             display: none;
             height: 100vh;
-            grid-template-rows: 80px 1fr 1fr 140px;
-            background: #080811;
+            grid-template-rows: 60px 1fr 1fr 130px;
+            background: #05050d;
         }
         #battle-screen.active { display: grid; }
-        .battle-header { background: rgba(0, 0, 0, 0.8); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 10; }
+        .battle-header { background: rgba(0, 0, 0, 0.75); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border-color); }
         .battle-field { border-bottom: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 15px; position: relative; }
-        .battle-hand { display: flex; justify-content: center; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 10px; overflow-x: auto; }
+        .battle-hand { display: flex; justify-content: center; gap: 8px; align-items: center; background: rgba(255, 255, 255, 0.01); padding: 8px; overflow-x: auto; }
+        
         .field-card {
-            width: 80px;
-            height: 110px;
+            width: 75px;
+            height: 105px;
             border: 1px solid var(--border-color);
             background-size: cover;
             background-position: center;
-            border-radius: 6px;
+            border-radius: 5px;
             position: relative;
             cursor: pointer;
             text-align: center;
@@ -178,45 +178,42 @@
             text-shadow: 1px 1px 2px black;
         }
         .field-card .card-atk-badge {
-            background: rgba(0,0,0,0.7);
-            border-radius: 3px;
-            padding: 2px;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 2px;
+            padding: 1px 3px;
             font-weight: bold;
         }
         .status-log {
             position: absolute;
-            bottom: 150px;
+            bottom: 140px;
             left: 20px;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.85);
             border: 1px solid var(--primary-color);
-            padding: 10px;
-            border-radius: 5px;
-            max-width: 300px;
-            font-size: 12px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            max-width: 280px;
+            font-size: 11px;
             z-index: 100;
-            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. ホーム画面 -->
     <div id="home-screen" class="screen active">
         <div class="panel">
             <h1>ERRATA ORIGINALITY</h1>
-            <div style="margin: 20px 0; text-align: left;">
-                <label>👤 プレイヤー名:</label>
+            <div style="margin: 15px 0; text-align: left;">
+                <label style="font-size: 13px;">👤 プレイヤー名:</label>
                 <input type="text" id="username-input" placeholder="名前を入力してください">
                 <button class="btn btn-secondary" onclick="saveProfile()">プロフィール保存</button>
-                <p id="profile-status" style="font-size: 12px; color: #00ffcc; text-align: center;"></p>
+                <p id="profile-status" style="font-size: 11px; color: #00ffcc; text-align: center; margin: 5px 0 0 0;"></p>
             </div>
             <button class="btn" onclick="startMatching()">オンライン対戦を探す</button>
             <button class="btn btn-secondary" onclick="openDeckEditor()">デッキ編集</button>
-            <div id="status-message" style="margin-top: 15px; color: #ffcc00; font-size: 14px;"></div>
+            <div id="status-message" style="margin-top: 15px; color: #ffcc00; font-size: 13px;"></div>
         </div>
     </div>
 
-    <!-- 2. デッキ編集画面 -->
     <div id="deck-editor" class="screen">
         <div class="card-pool">
             <h2>カードプール</h2>
@@ -224,33 +221,34 @@
         </div>
         <div class="my-deck">
             <h2>マイデッキ (<span id="deck-count">0</span>/60)</h2>
-            <button class="btn" onclick="saveDeck()">デッキを保存して戻る</button>
+            <button class="btn" onclick="saveDeck()">保存して戻る</button>
             <button class="btn btn-secondary" onclick="closeDeckEditor()">保存せずに戻る</button>
             <div id="deck-list-container" style="margin-top: 15px;"></div>
         </div>
     </div>
 
-    <!-- 3. 対戦画面 -->
     <div id="battle-screen" class="screen">
         <div class="battle-header">
             <div>相手: <span id="opponent-name">???</span> (LP: <span id="opponent-lp">8000</span>) [コスト: <span id="opponent-cost">0</span>]</div>
-            <div id="battle-turn-indicator">対戦開始準備中</div>
+            <div id="battle-turn-indicator" style="font-weight: bold; color: var(--primary-color);">接続中...</div>
             <div>自分: <span id="my-name">自分</span> (LP: <span id="my-lp">8000</span>) [コスト: <span id="my-cost">0</span>/<span id="my-max-cost">0</span>]</div>
         </div>
         <div class="battle-field" id="opponent-field"></div>
         <div class="battle-field" id="my-field"></div>
         
-        <div class="status-log" id="battle-log">ゲームを開始してください。</div>
+        <div class="status-log" id="battle-log">対戦相手を待っています...</div>
 
         <div class="battle-hand" id="my-hand"></div>
-        <div style="display: flex; justify-content: center; gap: 10px; background: #000; padding: 5px;">
-            <button class="btn btn-secondary" style="width: 150px; margin: 0;" onclick="endTurn()">ターン終了</button>
-            <button class="btn btn-secondary" style="width: 150px; margin: 0; background-color: #551a8b;" onclick="surrender()">降伏する</button>
+        <div style="display: flex; justify-content: center; gap: 10px; background: #000; padding: 6px;">
+            <button class="btn btn-secondary" style="width: 130px; margin: 0; padding: 8px;" onclick="endTurn()">ターン終了</button>
+            <button class="btn btn-secondary" style="width: 130px; margin: 0; padding: 8px; background-color: #4a154b;" onclick="surrender()">降伏</button>
         </div>
     </div>
 
     <script>
+        // 固定されたRenderサーバーURL
         const SERVER_URL = "https://cardgame-sinuchi.onrender.com"; 
+        
         let socket;
         let cardsDatabase = [];
         let myDeck = [];
@@ -269,31 +267,29 @@
             myGraveyard: [],
             opponentGraveyard: [],
             isNextSummonFaceDown: false,
+            apocalypseCount: 0,
             activeEffects: {
-                goshoBonus: false // 五輪書バフフラグ
+                goshoBonus: false // 五輪書バフ
             }
         };
 
-        // イラストモチーフの定義[span_7](start_span)[span_7](end_span)
-        const MOTIFS = {
-            gun: ["一般兵士", "いつの日かの飛鉄「佐貫」", "シュラフ・アリーナ", "自衛用拳銃"],[span_8](start_span)[span_8](end_span)
-            sword: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク"],[span_9](start_span)[span_9](end_span)
-            katana: ["小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ"],[span_10](start_span)[span_10](end_span)
-            blades: [
-                "八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク",[span_11](start_span)[span_11](end_span)
-                "小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ",[span_12](start_span)[span_12](end_span)
-                "氷結の地", "イソナ", "異界の聖槍ロンギヌス", "ラーツ・グローブ[span_13](start_span)"[span_13](end_span)
+        // イラスト判定タグ
+        const CARD_TAGS = {
+            gun: ["一般兵士", "いつの日かの飛鉄「佐貫」", "シュラフ・アリーナ", "自衛用拳銃"],
+            sword: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク"],
+            katana: ["小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ"],
+            blade: [
+                "八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク",
+                "小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ",
+                "氷結の地", "イソナ", "異界の聖槍ロンギヌス", "ラーツ・グローブ"
             ]
         };
 
-        // モチーフ判定ヘルパー関数
-        function hasMotif(cardName, motifType) {
-            if (!MOTIFS[motifType]) return false;
-            if (motifType === "blades") {
-                // 刃物は刀持ち・剣持ち・直接指定カードすべてを含む[span_14](start_span)[span_14](end_span)
-                return MOTIFS.katana.includes(cardName) || MOTIFS.sword.includes(cardName) || MOTIFS.blades.includes(cardName);[span_15](start_span)[span_15](end_span)
+        function checkTag(cardName, tag) {
+            if (tag === "blade") {
+                return CARD_TAGS.katana.includes(cardName) || CARD_TAGS.sword.includes(cardName) || CARD_TAGS.blade.includes(cardName);
             }
-            return MOTIFS[motifType].includes(cardName);
+            return CARD_TAGS[tag] && CARD_TAGS[tag].includes(cardName);
         }
 
         window.onload = async () => {
@@ -325,7 +321,7 @@
                 const response = await fetch('cards.json');
                 cardsDatabase = await response.json();
             } catch (e) {
-                console.error("cards.json の読み込みに失敗:", e);
+                console.error("cards.json の取得に失敗しました", e);
             }
         }
 
@@ -345,11 +341,11 @@
             cardsDatabase.forEach(card => {
                 const item = document.createElement('div');
                 item.className = 'card-item';
-                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
+                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/130x180?text=No+Image';
                 item.innerHTML = `
                     <img src="${imgPath}" alt="${card.name}">
                     <strong>${card.name}</strong><br>
-                    コスト:${card.cost} / ATK:${card.atk || '-'}
+                    コ:${card.cost} / 攻:${card.atk || '-'}
                 `;
                 item.onclick = () => addCardToDeck(card);
                 grid.appendChild(item);
@@ -362,7 +358,7 @@
             if (["これあげる", "小夜峰綾香", "シュラフ・アリーナ"].includes(card.name)) limit = 1;
             if (card.name === "ネズミ3.57864") limit = 2;
 
-            if (count >= limit) return alert(`「${card.name}」はデッキに${limit}枚までしか入れられません。`);
+            if (count >= limit) return alert(`「${card.name}」はデッキに最大 ${limit} 枚までです。`);
             if (myDeck.length >= 60) return alert("デッキは最大60枚までです。");
 
             myDeck.push(card);
@@ -383,7 +379,7 @@
                 div.className = 'deck-list-item';
                 div.innerHTML = `
                     <span>${card.name} (コスト:${card.cost})</span>
-                    <button class="remove-btn" onclick="removeCardFromDeck(${index})">削除</button>
+                    <button class="remove-btn" onclick="removeCardFromDeck(${index})">削</button>
                 `;
                 container.appendChild(div);
             });
@@ -401,10 +397,11 @@
         function startMatching() {
             if (myDeck.length < 35) return alert("デッキを35枚以上組んでから対戦に参加してください！");
             document.getElementById('status-message').innerText = "対戦サーバーに接続中...";
+            
             socket = io(SERVER_URL);
 
             socket.on('connect', () => {
-                document.getElementById('status-message').innerText = "マッチング待機中... 相手を探しています。";
+                document.getElementById('status-message').innerText = "マッチング待機中...";
                 socket.emit('join-lobby', { name: profile.name, deckCount: myDeck.length });
             });
 
@@ -412,11 +409,13 @@
                 document.getElementById('status-message').innerText = "対戦相手が見つかりました！";
                 document.getElementById('opponent-name').innerText = data.opponent.name;
                 document.getElementById('my-name').innerText = profile.name;
+                
                 gameState.isMyTurn = socket.id < data.roomId;
+                
                 setTimeout(() => {
                     switchScreen('battle-screen');
                     initBattle();
-                }, 2000);
+                }, 1500);
             });
 
             socket.on('game-action', (action) => {
@@ -440,6 +439,7 @@
             gameState.myGraveyard = [];
             gameState.opponentGraveyard = [];
             gameState.activeEffects.goshoBonus = false;
+            gameState.apocalypseCount = 0;
 
             gameState.myDeckArray = [...myDeck];
             shuffle(gameState.myDeckArray);
@@ -474,36 +474,36 @@
             document.getElementById('opponent-cost').innerText = gameState.opponentCost;
             document.getElementById('battle-turn-indicator').innerText = gameState.isMyTurn ? "あなたのターン" : "相手のターン";
 
-            // 手札
+            // 手札描画
             const handContainer = document.getElementById('my-hand');
             handContainer.innerHTML = "";
             gameState.myHand.forEach((card, index) => {
                 const btn = document.createElement('div');
                 btn.className = 'card-item';
-                btn.style.width = '80px';
-                btn.style.height = '110px';
+                btn.style.width = '75px';
+                btn.style.height = '105px';
                 btn.style.fontSize = '9px';
-                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
+                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/130x180?text=No+Image';
                 btn.innerHTML = `
-                    <img src="${imgPath}" style="width:100%; height:50px; border-radius:4px;">
-                    <strong>${card.name}</strong><br>コスト:${card.cost}
+                    <img src="${imgPath}" style="width:100%; height:45px; border-radius:3px;">
+                    <strong>${card.name}</strong><br>コ:${card.cost}
                 `;
                 btn.onclick = () => playCard(index);
                 handContainer.appendChild(btn);
             });
 
-            // 自分フィールド
+            // 自分フィールド描画
             const myFieldContainer = document.getElementById('my-field');
             myFieldContainer.innerHTML = "";
             gameState.myField.forEach((card, index) => {
                 const div = document.createElement('div');
                 div.className = 'field-card';
-                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
+                const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/130x180?text=No+Image';
                 div.style.backgroundImage = `url(${imgPath})`;
                 
-                // 五輪書のバフ計算[span_16](start_span)[span_16](end_span)
+                // 五輪書効果（刀・剣持ちのATK+500）
                 let displayAtk = card.atk;
-                if (card.atk && gameState.activeEffects.goshoBonus && (hasMotif(card.name, 'sword') || hasMotif(card.name, 'katana'))) {[span_17](start_span)[span_17](end_span)
+                if (card.atk && gameState.activeEffects.goshoBonus && (checkTag(card.name, 'sword') || checkTag(card.name, 'katana'))) {
                     displayAtk += 500;
                 }
 
@@ -515,13 +515,13 @@
                 myFieldContainer.appendChild(div);
             });
 
-            // 相手フィールド
+            // 相手フィールド描画
             const oppFieldContainer = document.getElementById('opponent-field');
             oppFieldContainer.innerHTML = "";
             gameState.opponentField.forEach((card, index) => {
                 const div = document.createElement('div');
                 div.className = 'field-card';
-                const imgPath = card.isFaceDown ? 'https://via.placeholder.com/140x200?text=FaceDown' : (card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image');
+                const imgPath = card.isFaceDown ? 'https://via.placeholder.com/130x180?text=FaceDown' : (card.image ? `images/${card.image}` : 'https://via.placeholder.com/130x180?text=No+Image');
                 div.style.backgroundImage = `url(${imgPath})`;
                 div.innerHTML = `
                     <strong>${card.isFaceDown ? "裏向き" : card.name}</strong>
@@ -536,9 +536,10 @@
                 gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 1);
                 gameState.myCost = gameState.myMaxCost;
                 drawCard();
+                checkApocalypseVictory(); // 特殊勝利判定
                 updateUI();
                 sendGameAction('sync-state', { maxCost: gameState.myMaxCost, cost: gameState.myCost });
-                logMsg("あなたのターンが開始されました。カードを1枚引きました。");
+                logMsg("あなたのターンが開始されました。1枚ドロー。");
             }
         }
 
@@ -547,7 +548,7 @@
             gameState.isMyTurn = false;
             updateUI();
             sendGameAction('end-turn', {});
-            logMsg("ターン終了を宣言しました。");
+            logMsg("ターンを終了しました。");
         }
 
         function playCard(handIndex) {
@@ -564,10 +565,10 @@
 
             if (card.type === "モンスター") {
                 gameState.myField.push(playedCard);
-                logMsg(`モンスター「${card.name}」を召喚！`);
+                logMsg(`モンスター「${card.name}」を召喚しました。`);
             } else {
                 gameState.myGraveyard.push(playedCard);
-                logMsg(`魔法・トラップ「${card.name}」を発動！`);
+                logMsg(`スペル「${card.name}」を発動しました。`);
             }
 
             triggerCardEffect(playedCard, true);
@@ -586,22 +587,22 @@
             const targetNum = parseInt(target);
             if (targetNum === 0) {
                 gameState.opponentLP = Math.max(0, gameState.opponentLP - calculatedAtk);
-                logMsg(`「${monster.name}」で相手プレイヤーに直接攻撃！ ${calculatedAtk} ダメージ！`);
+                logMsg(`「${monster.name}」で直接攻撃！ ${calculatedAtk} ダメージ！`);
                 sendGameAction('sync-lp', { opponentLP: gameState.opponentLP });
             } else {
                 const oppIndex = targetNum - 1;
                 if (oppIndex >= 0 && oppIndex < gameState.opponentField.length) {
                     const oppMonster = gameState.opponentField[oppIndex];
-                    logMsg(`「${monster.name}」が相手の「${oppMonster.name}」へ攻撃宣言！`);
+                    logMsg(`「${monster.name}」で相手の「${oppMonster.name}」を攻撃！`);
 
                     if (calculatedAtk > oppMonster.atk) {
-                        logMsg(`相手の「${oppMonster.name}」を戦闘破壊！`);
+                        logMsg(`相手の「${oppMonster.name}」を破壊しました！`);
                         sendGameAction('destroy-monster', { oppIndex: oppIndex });
                     } else if (calculatedAtk < oppMonster.atk) {
-                        logMsg(`「${monster.name}」が返り討ちに遭い、破壊されました。`);
+                        logMsg(`「${monster.name}」が返り討ちに遭いました。`);
                         gameState.myField.splice(myIndex, 1);
                     } else {
-                        logMsg("相打ち！両方のモンスターが破壊されました。");
+                        logMsg("相打ちとなり、両方のモンスターが破壊されました。");
                         gameState.myField.splice(myIndex, 1);
                         sendGameAction('destroy-monster', { oppIndex: oppIndex });
                     }
@@ -614,87 +615,125 @@
         function triggerCardEffect(card, isMyEffect) {
             const p = isMyEffect ? "me" : "opponent";
             const opp = isMyEffect ? "opponent" : "me";
+            const myHand = isMyEffect ? gameState.myHand : [];
 
             switch (card.name) {
-                case "マネネ":[span_18](start_span)[span_18](end_span)
-                    damageLP(opp, 800);[span_19](start_span)[span_19](end_span)
-                    logMsg(`マネネの効果！相手に800ダメージ！`);[span_20](start_span)[span_20](end_span)
+                case "マネネ":
+                    damageLP(opp, 800);
                     break;
-                case "参拝":[span_21](start_span)[span_21](end_span)
-                    healLP(p, 500);[span_22](start_span)[span_22](end_span)
-                    logMsg(`参拝の効果！LPを500回復！`);[span_23](start_span)[span_23](end_span)
+                case "参拝":
+                    healLP(p, 500);
                     break;
-                case "ケニファー":[span_24](start_span)[span_24](end_span)
-                    healLP(p, 700);[span_25](start_span)[span_25](end_span)
-                    if (isMyEffect) gameState.myCost = Math.min(10, gameState.myCost + 1);[span_26](start_span)[span_26](end_span)
-                    logMsg(`ケニファーの効果！LPを700回復、コスト最大値+1！`);[span_27](start_span)[span_27](end_span)
-                    break;
-                case "白翼の大天使ラファエル":[span_28](start_span)[span_28](end_span)
-                    healLP(p, 1000);[span_29](start_span)[span_29](end_span)
-                    if (isMyEffect) drawCard();[span_30](start_span)[span_30](end_span)
-                    logMsg(`ラファエルの効果！LPを1000回復し、1枚ドロー！`);[span_31](start_span)[span_31](end_span)
-                    break;
-                case "蓮の葉ハスター":[span_32](start_span)[span_32](end_span)
-                    healLP(p, 500);[span_33](start_span)[span_33](end_span)
-                    logMsg(`ハスターの効果！LPを500回復！`);[span_34](start_span)[span_34](end_span)
-                    break;
-                case "次回策":[span_35](start_span)[span_35](end_span)
+                case "ケニファー":
+                    healLP(p, 700);
                     if (isMyEffect) {
-                        drawCard();[span_36](start_span)[span_36](end_span)
-                        drawCard();[span_37](start_span)[span_37](end_span)
+                        gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 1);
+                        gameState.myCost = Math.min(10, gameState.myCost + 1);
                     }
-                    logMsg(`次回策の効果！2枚ドロー！`);[span_38](start_span)[span_38](end_span)
                     break;
-                case "やり直し":[span_39](start_span)[span_39](end_span)
+                case "白翼の大天使ラファエル":
+                    healLP(p, 1000);
+                    if (isMyEffect) drawCard();
+                    break;
+                case "蓮の葉ハスター":
+                    healLP(p, 500);
+                    break;
+                case "次回策":
                     if (isMyEffect) {
-                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];[span_40](start_span)[span_40](end_span)
-                        gameState.myHand = [];[span_41](start_span)[span_41](end_span)
-                        gameState.myField = [];[span_42](start_span)[span_42](end_span)
-                        shuffle(gameState.myDeckArray);[span_43](start_span)[span_43](end_span)
-                        for (let i = 0; i < 5; i++) drawCard();[span_44](start_span)[span_44](end_span)
-                        sendGameAction('reset-field', {});[span_45](start_span)[span_45](end_span)
+                        drawCard();
+                        drawCard();
                     }
-                    logMsg(`やり直しの効果！すべてのカードを山札に戻し、新たに5枚ドロー！`);[span_46](start_span)[span_46](end_span)
                     break;
-                case "また0から":[span_47](start_span)[span_47](end_span)
+                case "寝る子は育つって誰かが言ってた":
                     if (isMyEffect) {
-                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];[span_48](start_span)[span_48](end_span)
-                        gameState.myHand = [];[span_49](start_span)[span_49](end_span)
-                        gameState.myField = [];[span_50](start_span)[span_50](end_span)
-                        shuffle(gameState.myDeckArray);[span_51](start_span)[span_51](end_span)
-                        for (let i = 0; i < 5; i++) drawCard();[span_52](start_span)[span_52](end_span)
-                        sendGameAction('reset-field', { forceOpponentReset: true });[span_53](start_span)[span_53](end_span)
+                        gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 2);
+                        gameState.myCost = gameState.myMaxCost;
+                        endTurn();
                     }
-                    logMsg(`また0からの効果！お互いのすべてのカードが山札に戻り、5枚引き直します！`);[span_54](start_span)[span_54](end_span)
                     break;
-                case "寝る子は育つって誰かが言ってた":[span_55](start_span)[span_55](end_span)
+                case "やり直し":
                     if (isMyEffect) {
-                        gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 2);[span_56](start_span)[span_56](end_span)
-                        gameState.myCost = gameState.myMaxCost;[span_57](start_span)[span_57](end_span)
-                        endTurn();[span_58](start_span)[span_58](end_span)
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
+                        gameState.myHand = [];
+                        gameState.myField = [];
+                        shuffle(gameState.myDeckArray);
+                        for (let i = 0; i < 5; i++) drawCard();
+                        sendGameAction('reset-field', {});
                     }
-                    logMsg(`寝る子は育つの効果！コスト最大値+2、ターンを終了します。`);[span_59](start_span)[span_59](end_span)
                     break;
-                case "仮面は正体を隠すもの":[span_60](start_span)[span_60](end_span)
+                case "また0から":
                     if (isMyEffect) {
-                        gameState.isNextSummonFaceDown = true;[span_61](start_span)[span_61](end_span)
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
+                        gameState.myHand = [];
+                        gameState.myField = [];
+                        shuffle(gameState.myDeckArray);
+                        for (let i = 0; i < 5; i++) drawCard();
+                        sendGameAction('reset-field', { forceOpponentReset: true });
                     }
-                    logMsg(`仮面は正体を隠すものの効果！次のモンスターは裏向きで召喚可能！`);[span_62](start_span)[span_62](end_span)
                     break;
-                case "五輪書":[span_63](start_span)[span_63](end_span)
-                    gameState.activeEffects.goshoBonus = true;[span_64](start_span)[span_64](end_span)
-                    if (isMyEffect) drawCard();[span_65](start_span)[span_65](end_span)
-                    logMsg(`五輪書の発動！次のターン終了まで、自分の刀・剣持ちの攻撃力を+500し、1ドロー！`);[span_66](start_span)[span_66](end_span)
+                case "F1":
+                    if (isMyEffect) {
+                        const summonable = myHand.filter(c => c.type === "モンスター" && c.cost <= 3);
+                        if (summonable.length > 0) {
+                            const names = summonable.map((c, i) => `${i}: ${c.name}`).join("\n");
+                            const choice = prompt(`【F1効果】手札からコスト3以下のモンスターを出しますか？番号を入力してください：\n${names}`);
+                            const idx = parseInt(choice);
+                            if (!isNaN(idx) && idx >= 0 && idx < summonable.length) {
+                                const target = summonable[idx];
+                                const handIdx = gameState.myHand.findIndex(c => c.name === target.name);
+                                if (handIdx !== -1) {
+                                    const played = { ...gameState.myHand[handIdx], isFaceDown: false };
+                                    gameState.myHand.splice(handIdx, 1);
+                                    gameState.myField.push(played);
+                                    sendGameAction('play-card', { card: played });
+                                }
+                            }
+                        }
+                    }
                     break;
-                case "F1":[span_67](start_span)[span_67](end_span)
-                    logMsg(`F1の召喚！(コスト3以下を追加特殊召喚できる効果が待機中...)`);[span_68](start_span)[span_68](end_span)
+                case "ユリカ":
+                    if (isMyEffect) {
+                        const animals = myHand.filter(c => c.name === "カワウソ");
+                        if (animals.length > 0 && confirm("【ユリカ効果】手札の「カワウソ」をコスト0で召喚しますか？")) {
+                            const handIdx = gameState.myHand.findIndex(c => c.name === "カワウソ");
+                            if (handIdx !== -1) {
+                                const played = { ...gameState.myHand[handIdx], isFaceDown: false };
+                                gameState.myHand.splice(handIdx, 1);
+                                gameState.myField.push(played);
+                                sendGameAction('play-card', { card: played });
+                            }
+                        }
+                    }
                     break;
-                case "ユリカ":[span_69](start_span)[span_69](end_span)
-                    logMsg(`ユリカの召喚！(自分の場に動物系をコスト踏み倒し召喚可能...)`);[span_70](start_span)[span_70](end_span)
+                case "五輪書":
+                    gameState.activeEffects.goshoBonus = true;
+                    if (isMyEffect) drawCard();
                     break;
-                default:
-                    console.log(`${card.name} はパッシブ、または手動解決効果です。`);
+                case "仮面は正体を隠すもの":
+                    if (isMyEffect) gameState.isNextSummonFaceDown = true;
                     break;
+            }
+        }
+
+        function checkApocalypseVictory() {
+            const hasCthulhu = gameState.myField.some(c => c.name === "クトゥルフ") || gameState.opponentField.some(c => c.name === "クトゥルフ");
+            const hasRlyeh = gameState.myField.some(c => c.name === "ルルイエ") || gameState.opponentField.some(c => c.name === "ルルイエ");
+            const hasApocalypse = gameState.myField.some(c => c.name === "世界の滅亡") || gameState.opponentField.some(c => c.name === "世界の滅亡");
+
+            if (hasCthulhu && hasRlyeh && hasApocalypse) {
+                gameState.apocalypseCount++;
+                logMsg(`滅亡カウントダウン: ${3 - gameState.apocalypseCount} ターン...`);
+                if (gameState.apocalypseCount >= 2) {
+                    alert("クトゥルフとルルイエが揃い、時が満ちた。世界は滅亡した！");
+                    if (gameState.myField.some(c => c.name === "世界の滅亡")) {
+                        alert("あなたの特殊勝利です！");
+                    } else {
+                        alert("相手の特殊勝利です！");
+                    }
+                    location.reload();
+                }
+            } else {
+                gameState.apocalypseCount = 0;
             }
         }
 
@@ -711,13 +750,13 @@
             if (target === "me") {
                 gameState.myLP = Math.max(0, gameState.myLP - amount);
                 if (gameState.myLP <= 0) {
-                    alert("敗北しました。");
+                    alert("あなたのLPが0になりました。敗北。");
                     location.reload();
                 }
             } else {
                 gameState.opponentLP = Math.max(0, gameState.opponentLP - amount);
                 if (gameState.opponentLP <= 0) {
-                    alert("あなたの勝利です！");
+                    alert("相手のLPが0になりました！あなたの勝利です！");
                     location.reload();
                 }
             }
@@ -728,11 +767,8 @@
             document.getElementById('battle-log').innerText = text;
         }
 
-        // ─── 通信イベント受信制御 ───
         function sendGameAction(type, detail) {
-            if (socket) {
-                socket.emit('game-action', { type: type, detail: detail });
-            }
+            if (socket) socket.emit('game-action', { type: type, detail: detail });
         }
 
         function handleOpponentAction(action) {
@@ -765,12 +801,12 @@
                     break;
                 case 'reset-field':
                     gameState.opponentField = [];
-                    if (detail.forceOpponentReset) {[span_71](start_span)[span_71](end_span)
-                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];[span_72](start_span)[span_72](end_span)
-                        gameState.myHand = [];[span_73](start_span)[span_73](end_span)
-                        gameState.myField = [];[span_74](start_span)[span_74](end_span)
-                        shuffle(gameState.myDeckArray);[span_75](start_span)[span_75](end_span)
-                        for (let i = 0; i < 5; i++) drawCard();[span_76](start_span)[span_76](end_span)
+                    if (detail.forceOpponentReset) {
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
+                        gameState.myHand = [];
+                        gameState.myField = [];
+                        shuffle(gameState.myDeckArray);
+                        for (let i = 0; i < 5; i++) drawCard();
                     }
                     updateUI();
                     break;
@@ -784,7 +820,7 @@
         function surrender() {
             if (confirm("本当に降伏しますか？")) {
                 sendGameAction('surrender', {});
-                alert("敗北しました。");
+                alert("降伏しました。");
                 location.reload();
             }
         }
