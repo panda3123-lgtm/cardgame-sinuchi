@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エラッタオリジナリティ</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a2e;
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .menu-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 320px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #ff007f;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            background: #ff007f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .btn:hover {
+            background: #e0006c;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 127, 0.4);
+        }
+        .btn-secondary {
+            background: #1f4068;
+        }
+        .btn-secondary:hover {
+            background: #162447;
+            box-shadow: 0 5px 15px rgba(31, 64, 104, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="menu-container">
+        <h1>ERRATA<br>ORIGINALITY</h1>
+        <button class="btn" onclick="alert('対戦機能は開発中です！')">オンライン対戦</button>
+        <button class="btn btn-secondary" onclick="alert('デッキ編集機能は開発中です！')">デッキ編集</button>
+        <button class="btn btn-secondary" onclick="loadCardsTest()">カードデータ確認</button>
+    </div>
+
+    <script>
+        // cards.json が正しく読み込めるかテストする関数
+        async function loadCardsTest() {
+            try {
+                const response = await fetch('cards.json');
+                const cards = await response.json();
+                alert(`cards.json の読み込みに成功しました！\n登録されているカード数: ${cards.length} 枚`);
+                console.log(cards);
+            } catch (error) {
+                alert('cards.json の読み込みに失敗しました。ファイルが同じ場所にあるか確認してください。');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
