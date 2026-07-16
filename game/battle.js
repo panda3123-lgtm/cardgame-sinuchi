@@ -274,3 +274,65 @@ function canDirectAttack(defenderPlayer){
     return true;
 
 }
+
+
+// トラップセット
+
+function setTrap(card, player){
+
+    player.trapZone.push(card);
+
+    console.log(
+        card.name + "をセット"
+    );
+
+}
+
+
+
+// トラップ発動確認
+
+function activateTrap(trigger, player, enemy){
+
+    for(let i = player.trapZone.length - 1; i >= 0; i--){
+
+        let trap = player.trapZone[i];
+
+
+        // 条件確認
+        if(checkTrapCondition(trap, trigger)){
+
+
+            player.trapZone.splice(i,1);
+
+
+            player.graveyard.push(trap);
+
+
+            console.log(
+                trap.name + "を発動"
+            );
+
+
+            return trap;
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+
+// トラップ条件
+
+function checkTrapCondition(trap, trigger){
+
+    // ここは後でカードごとに拡張
+
+    return false;
+
+}
