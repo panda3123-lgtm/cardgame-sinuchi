@@ -87,7 +87,44 @@ function destroyCard(card, owner){
 
 // カード破壊処理
 
-function destroyCard(card, owner){
+function destroyCard(card, owner, reason){
+
+    // 効果破壊の場合
+
+    if(reason === "effect"){
+
+        if(card.effectDestroyImmune){
+
+            console.log(
+                card.name + "は効果破壊されない"
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    let index = owner.field.indexOf(card);
+
+
+    if(index !== -1){
+
+        owner.field.splice(index,1);
+
+    }
+
+
+    owner.graveyard.push(card);
+
+
+    console.log(
+        card.name + "を墓地へ送った"
+    );
+
+}
+{
 
     let index = owner.field.indexOf(card);
 
