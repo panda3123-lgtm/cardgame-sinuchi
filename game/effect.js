@@ -1,8 +1,10 @@
 // ======================================
 // エラッタオリジナリティ
 // effect.js
-// カード効果管理
+// カード効果処理
 // ======================================
+
+
 
 
 
@@ -12,140 +14,152 @@ const effects = {
 
 
 
-    // ============================
-    // ダメージ
-    // ============================
+// ==========================
+// ダメージ
+// ==========================
 
 
-    damage800:
-    (game,player)=>{
+damage500:
+(game,player)=>{
 
 
-        let enemy =
-        game.getEnemy(
-            player.id
-        );
+let enemy =
+game.getEnemy(
+player.id
+);
 
 
 
-        enemy.lp -= 800;
+enemy.lp -= 500;
 
 
 
-        game.checkWin();
+},
 
 
-    },
 
 
 
 
 
 
+// ==========================
+// ダメージ800
+// ==========================
 
-    // ============================
-    // 回復
-    // ============================
 
+damage800:
+(game,player)=>{
 
-    heal500:
-    (game,player)=>{
 
+let enemy =
+game.getEnemy(
+player.id
+);
 
-        player.lp += 500;
 
 
+enemy.lp -= 800;
 
-    },
 
 
+},
 
 
 
 
 
 
-    // ============================
-    // ドロー
-    // ============================
 
+// ==========================
+// 回復
+// ==========================
 
-    draw2:
-    (game,player)=>{
 
+heal500:
+(game,player)=>{
 
-        game.draw(
-            player,
-            2
-        );
 
+player.lp += 500;
 
-    },
 
+},
 
 
 
 
 
 
-    // ============================
-    // 相手カード破壊
-    // ============================
 
+// ==========================
+// ドロー
+// ==========================
 
-    destroyTarget:
-    (game,player,target)=>{
 
+draw2:
+(game,player)=>{
 
-        if(!target){
 
-            return;
+game.draw(
+player,
+2
+);
 
-        }
 
+},
 
 
-        let enemy =
-        game.getEnemy(
-            player.id
-        );
 
 
 
-        game.destroyCard(
-            target,
-            enemy
-        );
 
 
-    },
+// ==========================
+// 攻撃力アップ
+// ==========================
 
 
+atkUp500:
+(game,player,target)=>{
 
 
+if(!target)
+return;
 
 
 
+target.currentAtk += 500;
 
-    // ============================
-    // 攻撃力アップ
-    // ============================
 
 
-    atkUp500:
-    (game,player,target)=>{
+},
 
 
-        if(target){
 
 
-            target.atk += 500;
 
 
-        }
 
+// ==========================
+// モンスター破壊
+// ==========================
 
-    }
+
+destroyTarget:
+(game,player,target)=>{
+
+
+if(!target)
+return;
+
+
+
+target.destroy=true;
+
+
+
+}
+
 
 
 
@@ -161,9 +175,10 @@ const effects = {
 
 
 
-// ==================================
+
+// ==========================
 // 効果発動
-// ==================================
+// ==========================
 
 
 function activateEffect(
@@ -175,35 +190,47 @@ target=null
 
 
 
-    let effect =
-    effects[
-        card.effectId
-    ];
+let effect =
+effects[
+card.effectId
+];
 
 
 
-    if(!effect){
-
-
-        console.log(
-        "未登録効果:",
-        card.effectId
-        );
-
-
-        return;
-
-
-    }
+if(!effect){
 
 
 
+console.log(
+"未登録効果:",
+card.effectId
+);
 
-    effect(
-        game,
-        player,
-        target
-    );
+
+
+return;
 
 
 }
+
+
+
+
+effect(
+game,
+player,
+target
+);
+
+
+
+}
+
+
+
+
+
+module.exports =
+{
+activateEffect
+};
