@@ -161,4 +161,8 @@ function setting(){
 
 // 起動
 
-render();
+render(else if(scene === "deck"){
+
+    deckScreen();
+
+});
