@@ -135,7 +135,9 @@ function battleStart(){
 
 function deckEdit(){
 
-    alert("デッキ編成は後で作成");
+    changeScene("deck");
+
+
 
 }
 
