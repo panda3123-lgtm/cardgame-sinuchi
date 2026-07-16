@@ -5,11 +5,13 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+エラッタオリジナリティ
+</title>
 
-<title>エラッタオリジナリティ</title>
 
 <link rel="stylesheet" href="style.css">
+
 
 </head>
 
@@ -17,21 +19,48 @@
 <body>
 
 
-<!-- =====================
-     タイトル画面
-===================== -->
+<!-- ================= -->
+<!-- ホーム -->
+<!-- ================= -->
 
-<div id="title-screen" class="screen active">
-
-
-    <h1>
-        エラッタオリジナリティ
-    </h1>
+<div id="home-screen" class="screen active">
 
 
-    <button onclick="goMenu()">
-        START
-    </button>
+<h1>
+エラッタオリジナリティ
+</h1>
+
+
+<div>
+
+<input
+id="username-input"
+placeholder="名前"
+>
+
+
+<button onclick="saveProfile()">
+保存
+</button>
+
+
+<p id="profile-status">
+</p>
+
+
+</div>
+
+
+
+<button onclick="openDeckEditor()">
+デッキ編集
+</button>
+
+
+
+<button onclick="startMatching()">
+オンライン対戦
+</button>
 
 
 </div>
@@ -40,87 +69,33 @@
 
 
 
-<!-- =====================
-     メニュー画面
-===================== -->
+<!-- ================= -->
+<!-- デッキ編集 -->
+<!-- ================= -->
 
-<div id="menu-screen" class="screen">
-
-
-    <h2>
-        メニュー
-    </h2>
-
-
-
-    <button onclick="startMatching()">
-        オンライン対戦
-    </button>
-
-
-
-    <button onclick="startAI()">
-        AI対戦
-    </button>
-
-
-
-    <button onclick="openDeckEditor()">
-        デッキ編成
-    </button>
-
-
-</div>
-
-
-
-
-
-<!-- =====================
-     デッキ編集
-===================== -->
 
 <div id="deck-editor" class="screen">
 
 
-    <h2>
-        デッキ編成
-    </h2>
+<h2>
+デッキ編集
+</h2>
+
+
+<div id="deck-list">
+
+</div>
 
 
 
-    <h3>
-        カード一覧
-    </h3>
+<button onclick="saveDeck()">
+保存
+</button>
 
 
-    <div id="card-list">
-
-    </div>
-
-
-
-
-    <h3>
-        現在のデッキ
-    </h3>
-
-
-    <div id="deck-list">
-
-    </div>
-
-
-
-    <button onclick="saveDeck()">
-        保存
-    </button>
-
-
-
-    <button onclick="closeDeckEditor()">
-        戻る
-    </button>
+<button onclick="closeDeckEditor()">
+戻る
+</button>
 
 
 </div>
@@ -129,40 +104,49 @@
 
 
 
-<!-- =====================
-     対戦画面
-===================== -->
+
+
+
+<!-- ================= -->
+<!-- マッチング -->
+<!-- ================= -->
+
+
+<div id="matching-screen" class="screen">
+
+
+<h2>
+対戦相手を探しています...
+</h2>
+
+
+</div>
+
+
+
+
+
+
+
+<!-- ================= -->
+<!-- バトル画面 -->
+<!-- ================= -->
+
 
 <div id="battle-screen" class="screen">
 
 
 <h2>
-    対戦
+バトル
 </h2>
 
 
 
+<div id="enemy-area">
 
-<!-- 相手情報 -->
-
-<div id="enemy-info">
-
-    相手LP:
-
-    <span id="enemy-lp">
-        8000
-    </span>
-
-</div>
-
-
-
-
-
-<!-- 相手フィールド -->
 
 <h3>
-    相手フィールド
+相手
 </h3>
 
 
@@ -171,28 +155,12 @@
 </div>
 
 
-
-<div id="enemy-grave">
-
-    相手墓地
-
-</div>
-
-
-
-
-
-
-
-<!-- ターン -->
-
-<div id="turn-info">
-
-    ターン:
-
-    <span id="turn-player">
-
-    </span>
+<p>
+LP:
+<span id="enemy-lp">
+8000
+</span>
+</p>
 
 
 </div>
@@ -201,60 +169,39 @@
 
 
 
+<hr>
 
 
-<!-- 自分フィールド -->
+
+
+
+<div id="player-area">
+
 
 <h3>
-    自分フィールド
+自分
 </h3>
 
 
-<div id="my-field">
-
-</div>
-
-
-<div id="my-grave">
-
-    自分墓地
+<div id="player-field">
 
 </div>
 
 
 
+<p>
+LP:
+<span id="player-lp">
+8000
+</span>
+</p>
 
 
 
-<!-- 自分情報 -->
+<div id="hand-area">
 
-<div id="my-info">
+</div>
 
-
-    自分LP:
-
-    <span id="my-lp">
-        8000
-    </span>
-
-
-    <br>
-
-
-    コスト:
-
-
-    <span id="my-cost">
-        0
-    </span>
-
-
-    /
-
-
-    <span id="my-max-cost">
-        0
-    </span>
 
 
 </div>
@@ -262,89 +209,19 @@
 
 
 
-
-
-
-<!-- 手札 -->
-
-<h3>
-    手札
-</h3>
-
-
-<div id="my-hand">
-
-</div>
-
-
-
-
-
-
-
-<!-- 操作 -->
 
 <button onclick="endTurn()">
-
-    ターン終了
-
+ターン終了
 </button>
 
 
-
-
-
-
-
-<!-- ログ -->
-
-<h3>
-    ログ
-</h3>
-
-
-<div id="game-log">
-
 </div>
 
 
 
 
 
-
-
-<!-- 確認ウィンドウ -->
-
-<div id="confirm-window">
-
-
-    <p id="confirm-text">
-
-    </p>
-
-
-
-    <button onclick="confirmPlay()">
-        実行
-    </button>
-
-
-
-    <button onclick="cancelPlay()">
-        キャンセル
-    </button>
-
-
-</div>
-
-
-
-
-</div>
-
-
-
-
+<script src="/socket.io/socket.io.js"></script>
 
 <script src="script.js"></script>
 
