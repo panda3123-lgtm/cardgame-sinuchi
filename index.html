@@ -85,7 +85,7 @@
             box-sizing: border-box;
         }
 
-        /* デッキ編集画面のレイアウト */
+        /* デッキ編集 */
         #deck-editor {
             display: none;
             padding: 20px;
@@ -149,17 +149,17 @@
             padding: 2px 6px;
         }
 
-        /* 対戦画面のレイアウト */
+        /* 対戦画面 */
         #battle-screen {
             display: none;
             height: 100vh;
-            grid-template-rows: 80px 1fr 1fr 120px;
+            grid-template-rows: 80px 1fr 1fr 140px;
             background: #080811;
         }
         #battle-screen.active { display: grid; }
         .battle-header { background: rgba(0, 0, 0, 0.8); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 10; }
         .battle-field { border-bottom: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; gap: 15px; position: relative; }
-        .battle-hand { display: flex; justify-content: center; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 10px; }
+        .battle-hand { display: flex; justify-content: center; gap: 10px; align-items: center; background: rgba(255, 255, 255, 0.02); padding: 10px; overflow-x: auto; }
         .field-card {
             width: 80px;
             height: 110px;
@@ -183,30 +183,43 @@
             padding: 2px;
             font-weight: bold;
         }
+        .status-log {
+            position: absolute;
+            bottom: 150px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--primary-color);
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
+    <!-- 1. ホーム画面 -->
     <div id="home-screen" class="screen active">
         <div class="panel">
             <h1>ERRATA ORIGINALITY</h1>
-            
             <div style="margin: 20px 0; text-align: left;">
                 <label>👤 プレイヤー名:</label>
                 <input type="text" id="username-input" placeholder="名前を入力してください">
                 <button class="btn btn-secondary" onclick="saveProfile()">プロフィール保存</button>
                 <p id="profile-status" style="font-size: 12px; color: #00ffcc; text-align: center;"></p>
             </div>
-
             <button class="btn" onclick="startMatching()">オンライン対戦を探す</button>
             <button class="btn btn-secondary" onclick="openDeckEditor()">デッキ編集</button>
             <div id="status-message" style="margin-top: 15px; color: #ffcc00; font-size: 14px;"></div>
         </div>
     </div>
 
+    <!-- 2. デッキ編集画面 -->
     <div id="deck-editor" class="screen">
         <div class="card-pool">
-            <h2>カードプール（クリックで追加）</h2>
+            <h2>カードプール</h2>
             <div class="card-grid" id="pool-grid"></div>
         </div>
         <div class="my-deck">
@@ -217,6 +230,7 @@
         </div>
     </div>
 
+    <!-- 3. 対戦画面 -->
     <div id="battle-screen" class="screen">
         <div class="battle-header">
             <div>相手: <span id="opponent-name">???</span> (LP: <span id="opponent-lp">8000</span>) [コスト: <span id="opponent-cost">0</span>]</div>
@@ -225,8 +239,10 @@
         </div>
         <div class="battle-field" id="opponent-field"></div>
         <div class="battle-field" id="my-field"></div>
-        <div class="battle-hand" id="my-hand">
-            </div>
+        
+        <div class="status-log" id="battle-log">ゲームを開始してください。</div>
+
+        <div class="battle-hand" id="my-hand"></div>
         <div style="display: flex; justify-content: center; gap: 10px; background: #000; padding: 5px;">
             <button class="btn btn-secondary" style="width: 150px; margin: 0;" onclick="endTurn()">ターン終了</button>
             <button class="btn btn-secondary" style="width: 150px; margin: 0; background-color: #551a8b;" onclick="surrender()">降伏する</button>
@@ -234,17 +250,14 @@
     </div>
 
     <script>
-        // ─── 設定と初期化 ───
-        const SERVER_URL = "https://cardgame-sinuchi.onrender.com"; // あなたのRenderサーバーURLに書き換えてください！
+        const SERVER_URL = "https://cardgame-sinuchi.onrender.com"; 
         let socket;
         let cardsDatabase = [];
         let myDeck = [];
         let profile = { name: "ゲスト" };
 
-        // ゲーム進行用ステータス
         let gameState = {
             isMyTurn: false,
-            turnCount: 0,
             myLP: 8000,
             opponentLP: 8000,
             myCost: 0,
@@ -255,16 +268,33 @@
             opponentField: [],
             myGraveyard: [],
             opponentGraveyard: [],
-            isNextSummonFaceDown: false // 「仮面は正体を隠すもの」用フラグ
+            isNextSummonFaceDown: false,
+            activeEffects: {
+                goshoBonus: false // 五輪書バフフラグ
+            }
         };
 
-        // ─── イラスト特性（ヒントを反映！） ───
+        // イラストモチーフの定義[span_7](start_span)[span_7](end_span)
         const MOTIFS = {
-            gun: ["一般兵士", "いつの日かの飛鉄「佐貫」", "シュラフ・アリーナ", "自衛用拳銃"],
-            sword: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク"],
-            katana: ["小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ"],
-            blades: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク", "小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ", "氷結の地", "イソナ", "異界 of 聖槍ロンギヌス", "ラーツ・グローブ"]
+            gun: ["一般兵士", "いつの日かの飛鉄「佐貫」", "シュラフ・アリーナ", "自衛用拳銃"],[span_8](start_span)[span_8](end_span)
+            sword: ["八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク"],[span_9](start_span)[span_9](end_span)
+            katana: ["小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ"],[span_10](start_span)[span_10](end_span)
+            blades: [
+                "八影月輪", "黒き刃", "永遠の追放者エリシオン", "静寂の剣士ジーク",[span_11](start_span)[span_11](end_span)
+                "小夜峰綾香", "カワウソ", "奔花片名代", "ユリカ",[span_12](start_span)[span_12](end_span)
+                "氷結の地", "イソナ", "異界の聖槍ロンギヌス", "ラーツ・グローブ[span_13](start_span)"[span_13](end_span)
+            ]
         };
+
+        // モチーフ判定ヘルパー関数
+        function hasMotif(cardName, motifType) {
+            if (!MOTIFS[motifType]) return false;
+            if (motifType === "blades") {
+                // 刃物は刀持ち・剣持ち・直接指定カードすべてを含む[span_14](start_span)[span_14](end_span)
+                return MOTIFS.katana.includes(cardName) || MOTIFS.sword.includes(cardName) || MOTIFS.blades.includes(cardName);[span_15](start_span)[span_15](end_span)
+            }
+            return MOTIFS[motifType].includes(cardName);
+        }
 
         window.onload = async () => {
             loadLocalData();
@@ -279,9 +309,7 @@
                 document.getElementById('profile-status').innerText = `おかえりなさい、${profile.name} さん！`;
             }
             const savedDeck = localStorage.getItem('eo_deck');
-            if (savedDeck) {
-                myDeck = JSON.parse(savedDeck);
-            }
+            if (savedDeck) myDeck = JSON.parse(savedDeck);
         }
 
         function saveProfile() {
@@ -301,7 +329,6 @@
             }
         }
 
-        // ─── デッキ編集システム ───
         function openDeckEditor() {
             switchScreen('deck-editor');
             renderCardPool();
@@ -335,12 +362,8 @@
             if (["これあげる", "小夜峰綾香", "シュラフ・アリーナ"].includes(card.name)) limit = 1;
             if (card.name === "ネズミ3.57864") limit = 2;
 
-            if (count >= limit) {
-                return alert(`「${card.name}」はデッキに${limit}枚までしか入れられません。`);
-            }
-            if (myDeck.length >= 60) {
-                return alert("デッキは最大60枚までです。");
-            }
+            if (count >= limit) return alert(`「${card.name}」はデッキに${limit}枚までしか入れられません。`);
+            if (myDeck.length >= 60) return alert("デッキは最大60枚までです。");
 
             myDeck.push(card);
             renderMyDeck();
@@ -355,7 +378,6 @@
             const container = document.getElementById('deck-list-container');
             container.innerHTML = "";
             document.getElementById('deck-count').innerText = myDeck.length;
-
             myDeck.forEach((card, index) => {
                 const div = document.createElement('div');
                 div.className = 'deck-list-item';
@@ -376,13 +398,9 @@
             switchScreen('home-screen');
         }
 
-        // ─── オンライン対戦 ＆ 進行システム ───
         function startMatching() {
-            if (myDeck.length < 35) {
-                return alert("デッキを35枚以上組んでから対戦に参加してください！");
-            }
+            if (myDeck.length < 35) return alert("デッキを35枚以上組んでから対戦に参加してください！");
             document.getElementById('status-message').innerText = "対戦サーバーに接続中...";
-            
             socket = io(SERVER_URL);
 
             socket.on('connect', () => {
@@ -394,10 +412,7 @@
                 document.getElementById('status-message').innerText = "対戦相手が見つかりました！";
                 document.getElementById('opponent-name').innerText = data.opponent.name;
                 document.getElementById('my-name').innerText = profile.name;
-                
-                // 先攻後攻の決定（自分の接続IDが辞書順で先なら先攻）
                 gameState.isMyTurn = socket.id < data.roomId;
-                
                 setTimeout(() => {
                     switchScreen('battle-screen');
                     initBattle();
@@ -414,27 +429,22 @@
             });
         }
 
-        // 対戦初期化
         function initBattle() {
             gameState.myLP = 8000;
             gameState.opponentLP = 8000;
-            gameState.myMaxCost = gameState.isMyTurn ? 1 : 0; // 先攻はコスト1から開始
+            gameState.myMaxCost = gameState.isMyTurn ? 1 : 0;
             gameState.myCost = gameState.myMaxCost;
             gameState.myHand = [];
             gameState.myField = [];
             gameState.opponentField = [];
             gameState.myGraveyard = [];
             gameState.opponentGraveyard = [];
+            gameState.activeEffects.goshoBonus = false;
 
-            // 山札をシャッフル
             gameState.myDeckArray = [...myDeck];
             shuffle(gameState.myDeckArray);
 
-            // 初期手札を5枚ドロー
-            for (let i = 0; i < 5; i++) {
-                drawCard();
-            }
-
+            for (let i = 0; i < 5; i++) drawCard();
             updateUI();
             startTurn();
         }
@@ -446,7 +456,6 @@
             }
         }
 
-        // ドロー処理
         function drawCard() {
             if (gameState.myDeckArray.length > 0) {
                 const card = gameState.myDeckArray.shift();
@@ -457,17 +466,15 @@
             }
         }
 
-        // UI同期更新
         function updateUI() {
             document.getElementById('my-lp').innerText = gameState.myLP;
             document.getElementById('opponent-lp').innerText = gameState.opponentLP;
             document.getElementById('my-cost').innerText = gameState.myCost;
             document.getElementById('my-max-cost').innerText = gameState.myMaxCost;
             document.getElementById('opponent-cost').innerText = gameState.opponentCost;
-
             document.getElementById('battle-turn-indicator').innerText = gameState.isMyTurn ? "あなたのターン" : "相手のターン";
 
-            // 手札の描画
+            // 手札
             const handContainer = document.getElementById('my-hand');
             handContainer.innerHTML = "";
             gameState.myHand.forEach((card, index) => {
@@ -485,7 +492,7 @@
                 handContainer.appendChild(btn);
             });
 
-            // 自分のフィールド描画
+            // 自分フィールド
             const myFieldContainer = document.getElementById('my-field');
             myFieldContainer.innerHTML = "";
             gameState.myField.forEach((card, index) => {
@@ -493,15 +500,22 @@
                 div.className = 'field-card';
                 const imgPath = card.image ? `images/${card.image}` : 'https://via.placeholder.com/140x200?text=No+Image';
                 div.style.backgroundImage = `url(${imgPath})`;
+                
+                // 五輪書のバフ計算[span_16](start_span)[span_16](end_span)
+                let displayAtk = card.atk;
+                if (card.atk && gameState.activeEffects.goshoBonus && (hasMotif(card.name, 'sword') || hasMotif(card.name, 'katana'))) {[span_17](start_span)[span_17](end_span)
+                    displayAtk += 500;
+                }
+
                 div.innerHTML = `
                     <strong>${card.isFaceDown ? "裏向き" : card.name}</strong>
-                    ${card.atk ? `<span class="card-atk-badge">ATK:${card.atk}</span>` : ''}
+                    ${card.atk ? `<span class="card-atk-badge">ATK:${displayAtk}</span>` : ''}
                 `;
-                div.onclick = () => attackWithMonster(index);
+                div.onclick = () => attackWithMonster(index, displayAtk);
                 myFieldContainer.appendChild(div);
             });
 
-            // 相手のフィールド描画
+            // 相手フィールド
             const oppFieldContainer = document.getElementById('opponent-field');
             oppFieldContainer.innerHTML = "";
             gameState.opponentField.forEach((card, index) => {
@@ -517,7 +531,6 @@
             });
         }
 
-        // ターン開始処理
         function startTurn() {
             if (gameState.isMyTurn) {
                 gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 1);
@@ -525,6 +538,7 @@
                 drawCard();
                 updateUI();
                 sendGameAction('sync-state', { maxCost: gameState.myMaxCost, cost: gameState.myCost });
+                logMsg("あなたのターンが開始されました。カードを1枚引きました。");
             }
         }
 
@@ -533,68 +547,61 @@
             gameState.isMyTurn = false;
             updateUI();
             sendGameAction('end-turn', {});
+            logMsg("ターン終了を宣言しました。");
         }
 
-        // ─── カードのプレイと効果発動 ───
         function playCard(handIndex) {
             if (!gameState.isMyTurn) return alert("あなたのターンではありません！");
             const card = gameState.myHand[handIndex];
 
-            if (gameState.myCost < card.cost) {
-                return alert("コストが足りません！");
-            }
+            if (gameState.myCost < card.cost) return alert("コストが足りません！");
 
             gameState.myCost -= card.cost;
             gameState.myHand.splice(handIndex, 1);
 
             let playedCard = { ...card, isFaceDown: gameState.isNextSummonFaceDown };
-            gameState.isNextSummonFaceDown = false; // 1回きりのためリセット
+            gameState.isNextSummonFaceDown = false; 
 
             if (card.type === "モンスター") {
                 gameState.myField.push(playedCard);
+                logMsg(`モンスター「${card.name}」を召喚！`);
             } else {
-                // 魔法・トラップは発動後、即座に墓地送り
                 gameState.myGraveyard.push(playedCard);
+                logMsg(`魔法・トラップ「${card.name}」を発動！`);
             }
 
-            // カード効果発動判定
             triggerCardEffect(playedCard, true);
-
             updateUI();
             sendGameAction('play-card', { card: playedCard });
         }
 
-        // モンスター攻撃処理
-        function attackWithMonster(myIndex) {
+        function attackWithMonster(myIndex, calculatedAtk) {
             if (!gameState.isMyTurn) return alert("あなたのターンではありません！");
             const monster = gameState.myField[myIndex];
             if (monster.type !== "モンスター") return;
 
-            // ネズミ3.57864（SA持ち）は即攻撃可能。その他は簡易的に常時攻撃可能設定
             const target = prompt("攻撃対象を選択してください。\n0: 相手プレイヤー\nまたは相手のモンスター番号(1〜)");
             if (target === null) return;
 
             const targetNum = parseInt(target);
             if (targetNum === 0) {
-                // 直接攻撃
-                gameState.opponentLP = Math.max(0, gameState.opponentLP - monster.atk);
-                alert(`相手プレイヤーに ${monster.atk} ダメージ！`);
+                gameState.opponentLP = Math.max(0, gameState.opponentLP - calculatedAtk);
+                logMsg(`「${monster.name}」で相手プレイヤーに直接攻撃！ ${calculatedAtk} ダメージ！`);
                 sendGameAction('sync-lp', { opponentLP: gameState.opponentLP });
             } else {
-                // モンスター同士のバトル
                 const oppIndex = targetNum - 1;
                 if (oppIndex >= 0 && oppIndex < gameState.opponentField.length) {
                     const oppMonster = gameState.opponentField[oppIndex];
-                    alert(`${monster.name} が ${oppMonster.name} に攻撃！`);
+                    logMsg(`「${monster.name}」が相手の「${oppMonster.name}」へ攻撃宣言！`);
 
-                    if (monster.atk > oppMonster.atk) {
-                        alert(`${oppMonster.name} を破壊しました！`);
+                    if (calculatedAtk > oppMonster.atk) {
+                        logMsg(`相手の「${oppMonster.name}」を戦闘破壊！`);
                         sendGameAction('destroy-monster', { oppIndex: oppIndex });
-                    } else if (monster.atk < oppMonster.atk) {
-                        alert(`${monster.name} が返り討ちに遭いました...`);
+                    } else if (calculatedAtk < oppMonster.atk) {
+                        logMsg(`「${monster.name}」が返り討ちに遭い、破壊されました。`);
                         gameState.myField.splice(myIndex, 1);
                     } else {
-                        alert("相打ちになりました！");
+                        logMsg("相打ち！両方のモンスターが破壊されました。");
                         gameState.myField.splice(myIndex, 1);
                         sendGameAction('destroy-monster', { oppIndex: oppIndex });
                     }
@@ -605,71 +612,88 @@
 
         // ─── 完全版効果エンジン ───
         function triggerCardEffect(card, isMyEffect) {
-            const player = isMyEffect ? "me" : "opponent";
-            const opponent = isMyEffect ? "opponent" : "me";
+            const p = isMyEffect ? "me" : "opponent";
+            const opp = isMyEffect ? "opponent" : "me";
 
             switch (card.name) {
-                case "マネネ":
-                    damageLP(opponent, 800);
+                case "マネネ":[span_18](start_span)[span_18](end_span)
+                    damageLP(opp, 800);[span_19](start_span)[span_19](end_span)
+                    logMsg(`マネネの効果！相手に800ダメージ！`);[span_20](start_span)[span_20](end_span)
                     break;
-                case "参拝":
-                    healLP(player, 500);
+                case "参拝":[span_21](start_span)[span_21](end_span)
+                    healLP(p, 500);[span_22](start_span)[span_22](end_span)
+                    logMsg(`参拝の効果！LPを500回復！`);[span_23](start_span)[span_23](end_span)
                     break;
-                case "ケニファー":
-                    healLP(player, 700);
-                    gameState.myCost = Math.min(10, gameState.myCost + 1);
+                case "ケニファー":[span_24](start_span)[span_24](end_span)
+                    healLP(p, 700);[span_25](start_span)[span_25](end_span)
+                    if (isMyEffect) gameState.myCost = Math.min(10, gameState.myCost + 1);[span_26](start_span)[span_26](end_span)
+                    logMsg(`ケニファーの効果！LPを700回復、コスト最大値+1！`);[span_27](start_span)[span_27](end_span)
                     break;
-                case "白翼の大天使ラファエル":
-                    healLP(player, 1000);
-                    if (isMyEffect) drawCard();
+                case "白翼の大天使ラファエル":[span_28](start_span)[span_28](end_span)
+                    healLP(p, 1000);[span_29](start_span)[span_29](end_span)
+                    if (isMyEffect) drawCard();[span_30](start_span)[span_30](end_span)
+                    logMsg(`ラファエルの効果！LPを1000回復し、1枚ドロー！`);[span_31](start_span)[span_31](end_span)
                     break;
-                case "蓮の葉ハスター":
-                    healLP(player, 500);
+                case "蓮の葉ハスター":[span_32](start_span)[span_32](end_span)
+                    healLP(p, 500);[span_33](start_span)[span_33](end_span)
+                    logMsg(`ハスターの効果！LPを500回復！`);[span_34](start_span)[span_34](end_span)
                     break;
-                case "次回策":
+                case "次回策":[span_35](start_span)[span_35](end_span)
                     if (isMyEffect) {
-                        drawCard();
-                        drawCard();
+                        drawCard();[span_36](start_span)[span_36](end_span)
+                        drawCard();[span_37](start_span)[span_37](end_span)
                     }
+                    logMsg(`次回策の効果！2枚ドロー！`);[span_38](start_span)[span_38](end_span)
                     break;
-                case "やり直し":
+                case "やり直し":[span_39](start_span)[span_39](end_span)
                     if (isMyEffect) {
-                        // 自分の場と手札をすべて山札に戻して5枚ドロー
-                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
-                        gameState.myHand = [];
-                        gameState.myField = [];
-                        shuffle(gameState.myDeckArray);
-                        for (let i = 0; i < 5; i++) drawCard();
-                        sendGameAction('reset-field', {});
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];[span_40](start_span)[span_40](end_span)
+                        gameState.myHand = [];[span_41](start_span)[span_41](end_span)
+                        gameState.myField = [];[span_42](start_span)[span_42](end_span)
+                        shuffle(gameState.myDeckArray);[span_43](start_span)[span_43](end_span)
+                        for (let i = 0; i < 5; i++) drawCard();[span_44](start_span)[span_44](end_span)
+                        sendGameAction('reset-field', {});[span_45](start_span)[span_45](end_span)
                     }
+                    logMsg(`やり直しの効果！すべてのカードを山札に戻し、新たに5枚ドロー！`);[span_46](start_span)[span_46](end_span)
                     break;
-                case "また0から":
-                    // お互いにすべて戻して5枚ドロー
-                    alert("世界の時が巻き戻る...！ お互いのカードを山札に戻し5ドローします。");
+                case "また0から":[span_47](start_span)[span_47](end_span)
                     if (isMyEffect) {
-                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
-                        gameState.myHand = [];
-                        gameState.myField = [];
-                        shuffle(gameState.myDeckArray);
-                        for (let i = 0; i < 5; i++) drawCard();
-                        sendGameAction('reset-field', { forceOpponentReset: true });
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];[span_48](start_span)[span_48](end_span)
+                        gameState.myHand = [];[span_49](start_span)[span_49](end_span)
+                        gameState.myField = [];[span_50](start_span)[span_50](end_span)
+                        shuffle(gameState.myDeckArray);[span_51](start_span)[span_51](end_span)
+                        for (let i = 0; i < 5; i++) drawCard();[span_52](start_span)[span_52](end_span)
+                        sendGameAction('reset-field', { forceOpponentReset: true });[span_53](start_span)[span_53](end_span)
                     }
+                    logMsg(`また0からの効果！お互いのすべてのカードが山札に戻り、5枚引き直します！`);[span_54](start_span)[span_54](end_span)
                     break;
-                case "寝る子は育つって誰かが言ってた":
+                case "寝る子は育つって誰かが言ってた":[span_55](start_span)[span_55](end_span)
                     if (isMyEffect) {
-                        gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 2);
-                        gameState.myCost = gameState.myMaxCost;
-                        endTurn();
+                        gameState.myMaxCost = Math.min(10, gameState.myMaxCost + 2);[span_56](start_span)[span_56](end_span)
+                        gameState.myCost = gameState.myMaxCost;[span_57](start_span)[span_57](end_span)
+                        endTurn();[span_58](start_span)[span_58](end_span)
                     }
+                    logMsg(`寝る子は育つの効果！コスト最大値+2、ターンを終了します。`);[span_59](start_span)[span_59](end_span)
                     break;
-                case "仮面は正体を隠すもの":
+                case "仮面は正体を隠すもの":[span_60](start_span)[span_60](end_span)
                     if (isMyEffect) {
-                        gameState.isNextSummonFaceDown = true;
-                        alert("次のモンスター召喚を裏向きで行うことができます！");
+                        gameState.isNextSummonFaceDown = true;[span_61](start_span)[span_61](end_span)
                     }
+                    logMsg(`仮面は正体を隠すものの効果！次のモンスターは裏向きで召喚可能！`);[span_62](start_span)[span_62](end_span)
+                    break;
+                case "五輪書":[span_63](start_span)[span_63](end_span)
+                    gameState.activeEffects.goshoBonus = true;[span_64](start_span)[span_64](end_span)
+                    if (isMyEffect) drawCard();[span_65](start_span)[span_65](end_span)
+                    logMsg(`五輪書の発動！次のターン終了まで、自分の刀・剣持ちの攻撃力を+500し、1ドロー！`);[span_66](start_span)[span_66](end_span)
+                    break;
+                case "F1":[span_67](start_span)[span_67](end_span)
+                    logMsg(`F1の召喚！(コスト3以下を追加特殊召喚できる効果が待機中...)`);[span_68](start_span)[span_68](end_span)
+                    break;
+                case "ユリカ":[span_69](start_span)[span_69](end_span)
+                    logMsg(`ユリカの召喚！(自分の場に動物系をコスト踏み倒し召喚可能...)`);[span_70](start_span)[span_70](end_span)
                     break;
                 default:
-                    console.log(`${card.name} の効果を適用しました（特殊条件、アタック・墓地条件は手動または特定タイミングで適用）。`);
+                    console.log(`${card.name} はパッシブ、または手動解決効果です。`);
                     break;
             }
         }
@@ -687,17 +711,21 @@
             if (target === "me") {
                 gameState.myLP = Math.max(0, gameState.myLP - amount);
                 if (gameState.myLP <= 0) {
-                    alert("あなたのLPが0になりました。敗北です。");
+                    alert("敗北しました。");
                     location.reload();
                 }
             } else {
                 gameState.opponentLP = Math.max(0, gameState.opponentLP - amount);
                 if (gameState.opponentLP <= 0) {
-                    alert("相手のLPが0になりました！あなたの勝利です！");
+                    alert("あなたの勝利です！");
                     location.reload();
                 }
             }
             updateUI();
+        }
+
+        function logMsg(text) {
+            document.getElementById('battle-log').innerText = text;
         }
 
         // ─── 通信イベント受信制御 ───
@@ -708,9 +736,7 @@
         }
 
         function handleOpponentAction(action) {
-            console.log("相手からデータ受信:", action);
             const detail = action.detail;
-
             switch (action.type) {
                 case 'sync-state':
                     gameState.opponentCost = detail.cost;
@@ -718,7 +744,6 @@
                     break;
                 case 'play-card':
                     gameState.opponentField.push(detail.card);
-                    // 相手がプレイしたカードの効果を発動（isMyEffect = false）
                     triggerCardEffect(detail.card, false);
                     updateUI();
                     break;
@@ -740,13 +765,12 @@
                     break;
                 case 'reset-field':
                     gameState.opponentField = [];
-                    if (detail.forceOpponentReset) {
-                        // 自分も強制リセット
-                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];
-                        gameState.myHand = [];
-                        gameState.myField = [];
-                        shuffle(gameState.myDeckArray);
-                        for (let i = 0; i < 5; i++) drawCard();
+                    if (detail.forceOpponentReset) {[span_71](start_span)[span_71](end_span)
+                        gameState.myDeckArray = [...gameState.myDeckArray, ...gameState.myHand, ...gameState.myField];[span_72](start_span)[span_72](end_span)
+                        gameState.myHand = [];[span_73](start_span)[span_73](end_span)
+                        gameState.myField = [];[span_74](start_span)[span_74](end_span)
+                        shuffle(gameState.myDeckArray);[span_75](start_span)[span_75](end_span)
+                        for (let i = 0; i < 5; i++) drawCard();[span_76](start_span)[span_76](end_span)
                     }
                     updateUI();
                     break;
