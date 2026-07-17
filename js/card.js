@@ -1,234 +1,60 @@
-// =================================
-// エラッタオリジナリティ
-// card.js
-// =================================
+/**
+ * カードオブジェクト生成・管理システム
+ */
+const CardSystem = {
+    // 日本語のJSONデータからHTML要素を生成する
+    createCardElement(cardData, location = 'pool') {
+        const card = document.createElement('div');
+        card.className = `card-item color-${cardData.color || 'none'}`;
+        card.dataset.id = cardData.id || cardData.カード名; // IDがなければカード名をキーにする
 
+        // カードの枠色を決定（複数色ある場合は最初の色をベースに）
+        let borderColors = cardData.color || ["グレー"];
+        if (Array.isArray(borderColors)) {
+            card.style.borderColor = this.getColorCode(borderColors[0]);
+        } else {
+            card.style.borderColor = this.getColorCode(borderColors);
+        }
 
-let cardDatabase = [];
-
-
-// カード読み込み
-async function loadCards() {
-
-    try {
-
-        const response = await fetch("cards.json");
-
-        cardDatabase = await response.json();
-
-        console.log(
-            "カード読み込み完了",
-            cardDatabase.length + "枚"
-        );
-
-
-        renderCardList();
-
-
-    } catch(error) {
-
-        console.error(
-            "cards.json読み込み失敗",
-            error
-        );
-
-    }
-
-}
-
-
-
-// =================================
-// カード一覧表示
-// =================================
-
-function renderCardList(cards = cardDatabase) {
-
-
-    const area =
-        document.getElementById("card-list");
-
-
-    if(!area) return;
-
-
-    area.innerHTML = "";
-
-
-    cards.forEach(card => {
-
-
-        const element =
-            document.createElement("div");
-
-
-        element.className =
-            "card";
-
-
-        element.innerHTML = `
-
-            <img 
-            src="images/${card.image}"
-            alt="${card.name}"
-            >
-
-
-            <h3>${card.name}</h3>
-
-
-            <p>
-            ${card.type}
-            </p>
-
-
-            <p>
-            コスト：${card.cost}
-            </p>
-
-
-            <p>
-            ATK：
-            ${card.atk ?? "-"}
-            </p>
-
+        // カード内部のテキスト・レイアウト構築
+        card.innerHTML = `
+            <div class="card-cost">${cardData.cost !== undefined ? cardData.cost : ''}</div>
+            <div class="card-name">${cardData.カード名}</div>
+            <div class="card-type-line">[${cardData.type || '不明'}]</div>
+            <div class="card-stats">
+                ${cardData.ATK !== undefined ? `<span class="atk">⚔️${cardData.ATK}</span>` : ''}
+                ${cardData.DEF !== undefined ? `<span class="def">🛡️${cardData.DEF}</span>` : ''}
+            </div>
         `;
 
+        // クリック時の挙動（プールにいるか、デッキにいるか、バトル中か）
+        card.addEventListener('click', () => {
+            if (location === 'pool') {
+                DeckEditor.addCardToDeck(cardData);
+            } else if (location === 'deck') {
+                DeckEditor.removeCardFromDeck(cardData.カード名);
+            } else if (location === 'battle') {
+                BattleSystem.onCardClicked(cardData, card);
+            }
+        });
 
-        element.onclick = () => {
+        return card;
+    },
 
-            showCardDetail(card);
-
+    // 日本語の色名からCSS用のカラーコードを返す
+    getColorCode(colorName) {
+        const colors = {
+            "赤": "#ff4d4d",
+            "青": "#4da6ff",
+            "緑": "#4dff4d",
+            "黄": "#ffff4d",
+            "黒": "#333333",
+            "白": "#ffffff",
+            "ピンク": "#ff99cc",
+            "紫": "#b366ff",
+            "オレンジ": "#ffa64d",
+            "金": "#ffd700"
         };
-
-
-        element.oncontextmenu = (e)=>{
-
-            e.preventDefault();
-
-            addCardToDeck(card);
-
-        };
-
-
-        area.appendChild(element);
-
-
-    });
-
-}
-
-
-
-// =================================
-// カード詳細
-// =================================
-
-function showCardDetail(card) {
-
-
-    // ミッション進行
-if(typeof progressMission === "function"){
-
-    progressMission(
-        "card_view",
-        1
-    );
-
-}
-
-
-    const detail =
-        document.getElementById(
-            "card-detail"
-        );
-
-
-    if(detail){
-
-
-        detail.innerHTML = `
-
-        <img src="images/${card.image}">
-
-
-        <h2>${card.name}</h2>
-
-
-        <p>
-        種類：
-        ${card.type}
-        </p>
-
-
-        <p>
-        コスト：
-        ${card.cost}
-        </p>
-
-
-        <p>
-        ATK：
-        ${card.atk ?? "-"}
-        </p>
-
-
-        <p>
-        色：
-        ${card.color.join(",")}
-        </p>
-
-
-        <p>
-        ${card.effect}
-        </p>
-
-
-        `;
-
-
-        return;
-
+        return colors[colorName] || "#888888";
     }
-
-
-    alert(
-`${card.name}
-
-種類:${card.type}
-
-コスト:${card.cost}
-
-ATK:${card.atk ?? "-"}
-
-${card.effect}`
-    );
-
-}
-
-
-
-// =================================
-// 検索
-// =================================
-
-function searchCards(keyword){
-
-
-    const result =
-        cardDatabase.filter(card =>
-
-            card.name.includes(keyword)
-
-        );
-
-
-    renderCardList(result);
-
-}
-
-
-
-// 起動
-
-loadCards();
+};
