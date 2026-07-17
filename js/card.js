@@ -127,6 +127,17 @@ function renderCardList(cards = cardDatabase) {
 function showCardDetail(card) {
 
 
+    // ミッション進行
+if(typeof progressMission === "function"){
+
+    progressMission(
+        "card_view",
+        1
+    );
+
+}
+
+
     const detail =
         document.getElementById(
             "card-detail"
