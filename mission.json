@@ -1,0 +1,65 @@
+[
+    {
+        "id":"first_start",
+        "name":"初めの一歩",
+        "description":"ゲームを起動する",
+        "type":"login",
+        "target":1,
+        "reward":{
+            "type":"title",
+            "value":"新人決闘者"
+        }
+    },
+
+
+    {
+        "id":"first_deck",
+        "name":"デッキ作成",
+        "description":"デッキを保存する",
+        "type":"deck_save",
+        "target":1,
+        "reward":{
+            "type":"icon",
+            "value":"card.png"
+        }
+    },
+
+
+    {
+        "id":"card_viewer",
+        "name":"カード研究家",
+        "description":"カード詳細を10回見る",
+        "type":"card_view",
+        "target":10,
+        "reward":{
+            "type":"title",
+            "value":"カード研究家"
+        }
+    },
+
+
+    {
+        "id":"battle_win",
+        "name":"初勝利",
+        "description":"対戦で勝利する",
+        "type":"win",
+        "target":1,
+        "reward":{
+            "type":"title",
+            "value":"勝利者"
+        }
+    },
+
+
+    {
+        "id":"collector",
+        "name":"収集家",
+        "description":"カードを100枚登録する",
+        "type":"card_count",
+        "target":100,
+        "reward":{
+            "type":"icon",
+            "value":"collector.png"
+        }
+    }
+]
