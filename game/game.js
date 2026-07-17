@@ -1,5 +1,6 @@
 /**
- * サーバーサイド TCGバトルロジック ＆ 全59枚効果処理モジュール (完全版)
+ * サーバーサイド TCGバトルロジック ＆ 全59枚効果処理モジュール
+ * 【エラッタオリジナリティルールブック Ver.現在 完全準拠版】
  */
 class Game {
     constructor(p1, p2) {
@@ -12,6 +13,7 @@ class Game {
             turnCount: 1,
             winnerId: null,
             
+            // 【ルール修正】先攻の初期コストは1
             p1: {
                 name: p1.name,
                 lp: 8000,
@@ -23,11 +25,12 @@ class Game {
                 magicBoard: [null, null, null, null, null], 
                 grave: []
             },
+            // 【ルール修正】後攻の初期コストは2
             p2: {
                 name: p2.name,
                 lp: 8000,
-                maxCost: 1,
-                currentCost: 1,
+                maxCost: 2,
+                currentCost: 2,
                 deck: [...p2.deck],
                 hand: [],
                 board: [null, null, null, null, null],
@@ -54,17 +57,25 @@ class Game {
         console.log(`🎮 Game Started: ${this.p1.name} VS ${this.p2.name}`);
         // 初期ドロー (お互い5枚)
         for (let i = 0; i < 5; i++) {
-            this.drawCard(this.p1.id);
-            this.drawCard(this.p2.id);
+            this.drawCard(this.p1.id, false);
+            this.drawCard(this.p2.id, false);
         }
     }
 
-    drawCard(socketId) {
+    // 【ルール修正】isDrawPhaseがtrueの時にドローできなかったらデッキ切れ敗北
+    drawCard(socketId, isDrawPhase = false) {
         const p = this.getPlayerState(socketId);
         if (p.deck.length > 0) {
             const card = p.deck.shift();
             p.hand.push(card);
             this.triggerOnDrawEvent(socketId);
+        } else {
+            if (isDrawPhase) {
+                // ドローできなければ即敗北（＝相手の勝利）
+                const opp = this.getOpponentState(socketId);
+                this.state.winnerId = opp.id;
+                console.log(`💀 デッキ切れにより敗北: ${p.name}`);
+            }
         }
     }
 
@@ -89,7 +100,7 @@ class Game {
         return types;
     }
 
-    // カード使用 (モンスター召喚 / 魔法・罠セット)
+    // カード使用
     useCard(socketId, cardIndex) {
         if (this.state.turnPlayerId !== socketId) return; 
 
@@ -145,18 +156,37 @@ class Game {
         } else {
             // モンスター戦闘
             const target = opp.board[targetIndex];
-            if (actualATK >= target.ATK) {
+            
+            // 【ルール修正】ATKが異なる場合は差分ダメージが発生、同じ場合は相打ち
+            if (actualATK > target.ATK) {
+                // 攻撃側が勝利：相手に差分ダメージ
+                const diff = actualATK - target.ATK;
+                opp.lp -= diff;
+                if (opp.lp <= 0) this.state.winnerId = socketId;
+
                 this.triggerOnLeaveField(target, targetIndex, opp.id);
                 opp.board[targetIndex] = null; 
-            }
-            if (actualATK <= target.ATK) {
+            } 
+            else if (actualATK < target.ATK) {
+                // 防御側が勝利（返り討ち）：自分に差分ダメージ
+                const diff = target.ATK - actualATK;
+                my.lp -= diff;
+                if (my.lp <= 0) this.state.winnerId = opp.id;
+
                 this.triggerOnLeaveField(attacker, attackerIndex, socketId);
                 my.board[attackerIndex] = null; 
+            } 
+            else {
+                // ATKが同じ：両方破壊され、ダメージは発生しない
+                this.triggerOnLeaveField(target, targetIndex, opp.id);
+                this.triggerOnLeaveField(attacker, attackerIndex, socketId);
+                opp.board[targetIndex] = null;
+                my.board[attackerIndex] = null;
             }
         }
     }
 
-    // ターン終了
+    // ターン終了 ➔ 次のターンの開始フェイズ
     endTurn(socketId) {
         if (this.state.turnPlayerId !== socketId) return;
 
@@ -168,17 +198,24 @@ class Game {
         }
 
         const nextPlayer = this.getPlayerState(this.state.turnPlayerId);
-        nextPlayer.maxCost = Math.min(nextPlayer.maxCost + 1, 10);
-        nextPlayer.currentCost = nextPlayer.maxCost;
+        
+        // 【ルール修正】ターン開始時に最大コストを +2 する（上限10）
+        nextPlayer.maxCost = Math.min(nextPlayer.maxCost + 2, 10);
+        nextPlayer.currentCost = nextPlayer.maxCost; // 最大まで全回復
         
         nextPlayer.board.forEach(slot => { if(slot) slot.hasAttacked = false; });
 
-        this.drawCard(this.state.turnPlayerId); 
-        this.triggerOnTurnStart(this.state.turnPlayerId);
+        // 【ルール修正】ドローフェイズ（第二引数をtrueにしてデッキ切れ敗北を有効化）
+        this.drawCard(this.state.turnPlayerId, true); 
+        
+        // 勝利が決まっていなければスタート時効果を発動
+        if (!this.state.winnerId) {
+            this.triggerOnTurnStart(this.state.turnPlayerId);
+        }
     }
 
     // ------------------------------------------
-    // 各種効果トリガーロジック
+    // 各種効果トリガーロジック（59枚エンジン）
     // ------------------------------------------
     triggerOnSummon(cardData, zoneIndex, socketId) {
         const cardName = cardData.カード名;
@@ -186,7 +223,7 @@ class Game {
         const opp = this.getOpponentState(socketId);
 
         if (my.board.some(s => s && s.カード名 === "ニャルラトホテプ")) {
-            this.drawCard(socketId); this.drawCard(socketId);
+            this.drawCard(socketId, false); this.drawCard(socketId, false);
         }
 
         switch (cardName) {
@@ -211,7 +248,7 @@ class Game {
                 break;
             case "機械仕掛けの鳥":
                 if (my.deck.length > 0) my.grave.push(my.deck.shift());
-                this.drawCard(socketId);
+                this.drawCard(socketId, false);
                 my.board[zoneIndex] = null;
                 this.triggerOnLeaveField(cardData, zoneIndex, socketId);
                 break;
@@ -242,14 +279,14 @@ class Game {
             case "これあげる":
                 if (my.hand.length >= 2) {
                     opp.hand.push(my.hand.shift(), my.hand.shift());
-                    this.drawCard(socketId); this.drawCard(socketId);
+                    this.drawCard(socketId, false); this.drawCard(socketId, false);
                     opp.lp -= 1000;
                     if (opp.lp <= 0) this.state.winnerId = socketId;
                 }
                 break;
             case "五輪書":
                 this.state.effects.gorinshoActiveTurns = 2;
-                this.drawCard(socketId);
+                this.drawCard(socketId, false);
                 break;
             case "封印の箱パンドラ":
                 my.lp += 800;
@@ -275,7 +312,7 @@ class Game {
         if (trapIdx !== -1) {
             opp.lp -= 400;
             if (opp.lp <= 0) this.state.winnerId = socketId;
-            this.drawCard(socketId);
+            this.drawCard(socketId, false);
             my.magicBoard[trapIdx] = null;
         }
 
@@ -350,7 +387,7 @@ class Game {
         const hasHazama = my.magicBoard.some(s => s && s.カード名 === "夢見の狭間");
         if (hasHazama) {
             if (Math.random() < 0.5) {
-                this.drawCard(socketId);
+                this.drawCard(socketId, false);
             } else if (my.grave.length > 0) {
                 const rIdx = Math.floor(Math.random() * my.grave.length);
                 my.deck.push(my.grave.splice(rIdx, 1)[0]);
@@ -358,9 +395,6 @@ class Game {
         }
     }
 
-    // ------------------------------------------
-    // 各プレイヤーのSocketIDに合わせたデータの送り分け生成
-    // ------------------------------------------
     createStateForPlayer(socketId) {
         const isP1 = (this.p1.id === socketId);
         const me = isP1 ? this.state.p1 : this.state.p2;
