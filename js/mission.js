@@ -294,3 +294,15 @@ function unlockReward(reward){
 // 起動
 
 loadMissions();
+
+if(typeof progressMission === "function"){
+
+    progressMission(
+
+        "login",
+
+        1
+
+    );
+
+}
