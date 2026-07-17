@@ -1,231 +1,346 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>エラッタオリジナリティ</title>
 
-<meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
 
-<title>
-エラッタオリジナリティ
-</title>
-
-
-<link rel="stylesheet" href="style.css">
-
-
+    <!-- Socket.io（オンライン対戦用） -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
-
 
 <body>
 
+<!-- =====================
+     タイトル画面
+===================== -->
+<section id="title-screen" class="screen active">
 
-<!-- ================= -->
-<!-- ホーム -->
-<!-- ================= -->
+    <div class="title-background">
 
-<div id="home-screen" class="screen active">
+        <h1>
+            エラッタ<br>
+            オリジナリティ
+        </h1>
 
+        <button id="start-button">
+            TAP TO START
+        </button>
 
-<h1>
-エラッタオリジナリティ
-</h1>
+    </div>
 
+</section>
 
-<div>
 
-<input
-id="username-input"
-placeholder="名前"
->
 
+<!-- =====================
+     ホーム画面
+===================== -->
+<section id="home-screen" class="screen">
 
-<button onclick="saveProfile()">
-保存
-</button>
+    <header class="profile-area">
 
+        <div id="player-icon">
+            👤
+        </div>
 
-<p id="profile-status">
-</p>
+        <div>
+            <div id="player-name">
+                プレイヤー
+            </div>
 
+            <div id="player-title">
+                初心者
+            </div>
+        </div>
 
-</div>
+    </header>
 
 
 
-<button onclick="openDeckEditor()">
-デッキ編集
-</button>
+    <main class="home-main">
 
+        <!-- お気に入りカード -->
+        <div id="favorite-card-area">
 
+            <img id="favorite-card-image"
+                 src=""
+                 alt="お気に入りカード">
 
-<button onclick="startMatching()">
-オンライン対戦
-</button>
+            <p id="favorite-card-name">
+                お気に入りカード
+            </p>
 
+        </div>
 
-</div>
 
 
+        <!-- メニュー -->
+        <div class="menu-area">
 
+            <button class="card-button"
+                    data-screen="battle-screen">
+                🃏 オンライン対戦
+            </button>
 
 
-<!-- ================= -->
-<!-- デッキ編集 -->
-<!-- ================= -->
+            <button class="card-button"
+                    data-screen="deck-screen">
+                🃏 デッキ編集
+            </button>
 
 
-<div id="deck-editor" class="screen">
+            <button class="card-button"
+                    data-screen="mission-screen">
+                🎯 ミッション
+            </button>
 
 
-<h2>
-デッキ編集
-</h2>
+            <button class="card-button"
+                    data-screen="setting-screen">
+                ⚙ 設定
+            </button>
 
+        </div>
 
-<div id="deck-list">
 
-</div>
+    </main>
 
+</section>
 
 
-<button onclick="saveDeck()">
-保存
-</button>
 
 
-<button onclick="closeDeckEditor()">
-戻る
-</button>
+<!-- =====================
+     デッキ編集画面
+===================== -->
+<section id="deck-screen" class="screen">
 
+    <h2>デッキ編集</h2>
 
-</div>
+    <div class="deck-layout">
 
+        <div id="card-pool">
+            カード一覧
+        </div>
 
 
+        <div id="deck-list">
+            デッキ
+        </div>
 
+    </div>
 
 
+    <button class="back-button">
+        戻る
+    </button>
 
+</section>
 
-<!-- ================= -->
-<!-- マッチング -->
-<!-- ================= -->
 
 
-<div id="matching-screen" class="screen">
 
+<!-- =====================
+     プロフィール画面
+===================== -->
+<section id="profile-screen" class="screen">
 
-<h2>
-対戦相手を探しています...
-</h2>
+    <h2>プロフィール</h2>
 
 
-</div>
+    <div id="profile-content">
 
+        <h3>アイコン</h3>
 
+        <div id="icon-list">
+        </div>
 
 
+        <h3>称号</h3>
 
+        <div id="title-list">
+        </div>
 
 
-<!-- ================= -->
-<!-- バトル画面 -->
-<!-- ================= -->
+    </div>
 
 
-<div id="battle-screen" class="screen">
+    <button class="back-button">
+        戻る
+    </button>
 
+</section>
 
-<h2>
-バトル
-</h2>
 
 
 
-<div id="enemy-area">
+<!-- =====================
+     ミッション画面
+===================== -->
+<section id="mission-screen" class="screen">
 
+    <h2>ミッション</h2>
 
-<h3>
-相手
-</h3>
 
+    <nav class="mission-tabs">
 
-<div id="enemy-field">
+        <button>
+            初心者
+        </button>
 
-</div>
+        <button>
+            通常
+        </button>
 
+        <button>
+            隠し
+        </button>
 
-<p>
-LP:
-<span id="enemy-lp">
-8000
-</span>
-</p>
+        <button>
+            コレクション
+        </button>
 
+    </nav>
 
-</div>
 
+    <div id="mission-list">
 
+    </div>
 
 
+    <button class="back-button">
+        戻る
+    </button>
 
-<hr>
+</section>
 
 
 
 
 
-<div id="player-area">
+<!-- =====================
+     設定画面
+===================== -->
+<section id="setting-screen" class="screen">
 
+    <h2>設定</h2>
 
-<h3>
-自分
-</h3>
 
+    <div class="setting-list">
 
-<div id="player-field">
+        <label>
+            音量
+            <input type="range">
+        </label>
 
-</div>
 
+        <label>
+            演出
+            <input type="checkbox" checked>
+        </label>
 
 
-<p>
-LP:
-<span id="player-lp">
-8000
-</span>
-</p>
+        <label>
+            バトルログ
+            <input type="checkbox" checked>
+        </label>
 
 
+        <label>
+            通知
+            <input type="checkbox" checked>
+        </label>
 
-<div id="hand-area">
 
-</div>
+    </div>
 
 
+    <button class="back-button">
+        戻る
+    </button>
 
-</div>
+</section>
 
 
 
 
 
-<button onclick="endTurn()">
-ターン終了
-</button>
+<!-- =====================
+     バトル画面
+===================== -->
+<section id="battle-screen" class="screen">
 
+    <h2>Battle</h2>
 
-</div>
 
+    <div class="battle-field">
 
 
+        <div id="enemy-area">
+            相手フィールド
+        </div>
 
 
-<script src="/socket.io/socket.io.js"></script>
+        <div id="battle-log">
+            バトルログ
+        </div>
 
-<script src="script.js"></script>
 
+        <div id="player-area">
+            自分フィールド
+        </div>
+
+
+    </div>
+
+
+    <div id="hand-area">
+        手札
+    </div>
+
+
+    <button id="end-turn-button">
+        ターン終了
+    </button>
+
+
+</section>
+
+
+
+
+
+<!-- =====================
+     結果画面
+===================== -->
+<section id="result-screen" class="screen">
+
+    <h1 id="result-text">
+        VICTORY
+    </h1>
+
+
+    <p>
+        ターン数：
+        <span id="turn-count">
+        </span>
+    </p>
+
+
+    <button>
+        ホームへ
+    </button>
+
+
+</section>
+
+
+
+
+<script src="js/main.js"></script>
 
 </body>
-
 </html>
