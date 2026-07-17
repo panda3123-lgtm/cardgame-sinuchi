@@ -1,74 +1,598 @@
-<section id="deck-screen" class="screen">
+<!DOCTYPE html>
+<html lang="ja">
 
-    <h2>デッキ編集</h2>
+<head>
 
+<meta charset="UTF-8">
 
-    <div class="deck-layout">
-
-
-        <!-- カード一覧 -->
-        <div id="card-pool">
-
-
-            <h3>
-                カード一覧
-            </h3>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 
-            <input
-            type="text"
-            id="card-search"
-            placeholder="カード検索">
+<title>
+エラッタオリジナリティ
+</title>
 
 
-            <div id="card-list">
-
-            </div>
+<link rel="stylesheet" href="style.css">
 
 
-        </div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+
+</head>
+
+
+<body>
 
 
 
+<!-- =====================
+タイトル画面
+===================== -->
 
-        <!-- 詳細 -->
-        <div id="card-detail">
-
-            カードを選択してください。
-
-
-        </div>
-
+<section
+id="title-screen"
+class="screen active">
 
 
-
-        <!-- デッキ -->
-        <div id="deck-list">
-
-            デッキ
-
-        </div>
+<div class="title-background">
 
 
-    </div>
+<h1>
+エラッタ<br>
+オリジナリティ
+</h1>
 
 
+<button id="start-button">
+
+TAP TO START
+
+</button>
 
 
-    <button
-    onclick="saveDeck()">
-
-        デッキ保存
-
-    </button>
-
-
-    <button
-    class="back-button">
-
-        戻る
-
-    </button>
+</div>
 
 
 </section>
+
+<!-- =====================
+ホーム画面
+===================== -->
+
+<section
+id="home-screen"
+class="screen">
+
+
+<header class="profile-area">
+
+
+<div id="player-icon">
+👤
+</div>
+
+
+<div>
+
+<div id="player-name">
+プレイヤー
+</div>
+
+
+<div id="player-title">
+初心者
+</div>
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+<main class="home-main">
+
+
+<!-- お気に入りカード -->
+
+<div id="favorite-card-area">
+
+
+<img
+id="favorite-card-image"
+src=""
+alt="お気に入りカード">
+
+
+<p id="favorite-card-name">
+
+お気に入りカード
+
+</p>
+
+
+</div>
+
+
+
+
+
+<!-- メニュー -->
+
+<div class="menu-area">
+
+
+<button
+class="card-button"
+data-screen="battle-screen">
+
+🃏 オンライン対戦
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="deck-screen">
+
+🃏 デッキ編集
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="profile-screen">
+
+👤 プロフィール
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="mission-screen">
+
+🎯 ミッション
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="setting-screen">
+
+⚙ 設定
+
+</button>
+
+
+</div>
+
+
+
+</main>
+
+
+</section>
+
+
+
+
+
+
+<!-- =====================
+プロフィール画面
+===================== -->
+
+
+<section
+id="profile-screen"
+class="screen">
+
+
+<h2>
+プロフィール
+</h2>
+
+
+
+<div id="profile-content">
+
+
+<h3>
+アイコン
+</h3>
+
+
+<div id="icon-list">
+
+</div>
+
+
+
+<h3>
+称号
+</h3>
+
+
+<div id="title-list">
+
+</div>
+
+
+
+</div>
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+
+</section>
+
+<!-- =====================
+デッキ編集画面
+===================== -->
+
+<section
+id="deck-screen"
+class="screen">
+
+
+<h2>
+デッキ編集
+</h2>
+
+
+
+<div class="deck-layout">
+
+
+
+<!-- カード一覧 -->
+
+<div id="card-pool">
+
+
+<h3>
+カード一覧
+</h3>
+
+
+
+<input
+type="text"
+id="card-search"
+placeholder="カード検索">
+
+
+
+<div id="card-list">
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- カード詳細 -->
+
+<div id="card-detail">
+
+カードを選択してください。
+
+</div>
+
+
+
+
+
+<!-- デッキ -->
+
+<div id="deck-list">
+
+デッキ
+
+</div>
+
+
+
+</div>
+
+
+
+
+<button
+onclick="saveDeck()">
+
+デッキ保存
+
+</button>
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+ミッション画面
+===================== -->
+
+<section
+id="mission-screen"
+class="screen">
+
+
+<h2>
+ミッション
+</h2>
+
+
+<div id="mission-list">
+
+</div>
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+設定画面
+===================== -->
+
+
+<section
+id="setting-screen"
+class="screen">
+
+
+<h2>
+設定
+</h2>
+
+
+
+<div class="setting-list">
+
+
+<label>
+
+音量
+
+<input
+type="range">
+
+</label>
+
+
+
+<label>
+
+演出
+
+<input
+type="checkbox"
+checked>
+
+</label>
+
+
+
+<label>
+
+バトルログ
+
+<input
+type="checkbox"
+checked>
+
+</label>
+
+
+</div>
+
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+バトル画面
+===================== -->
+
+
+<section
+id="battle-screen"
+class="screen">
+
+
+<h2>
+Battle
+</h2>
+
+
+
+
+<div class="battle-field">
+
+
+<div id="enemy-area">
+
+相手フィールド
+
+</div>
+
+
+
+<div id="battle-log">
+
+バトルログ
+
+</div>
+
+
+
+<div id="player-area">
+
+自分フィールド
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<div id="hand-area">
+
+手札
+
+</div>
+
+
+
+
+<button
+id="end-turn-button">
+
+ターン終了
+
+</button>
+
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+結果画面
+===================== -->
+
+
+<section
+id="result-screen"
+class="screen">
+
+
+<h1
+id="result-text">
+
+VICTORY
+
+</h1>
+
+
+
+<p>
+
+ターン数：
+
+<span id="turn-count">
+
+</span>
+
+
+</p>
+
+
+
+<button>
+
+ホームへ
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+<!-- =====================
+JavaScript
+===================== -->
+
+
+<script src="js/main.js"></script>
+
+<script src="js/card.js"></script>
+
+<script src="js/deck.js"></script>
+
+
+</body>
+
+</html>
