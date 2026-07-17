@@ -231,6 +231,15 @@ function saveDeck(){
     );
 
 
+if(typeof progressMission === "function"){
+
+    progressMission(
+        "deck_save",
+        1
+    );
+
+}
+    
     alert(
     "デッキを保存しました"
     );
