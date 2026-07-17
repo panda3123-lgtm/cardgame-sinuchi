@@ -1,1259 +1,214 @@
-/* =================================
-   エラッタオリジナリティ
-   style.css
-================================= */
-
-
-/* ================================
-   基本設定
-================================ */
-
-
+/* ================= GENERAL STYLES ================= */
 * {
-
     box-sizing: border-box;
-
+    margin: 0;
+    padding: 0;
+    user-select: none;
 }
-
-
 
 body {
-
-    margin:0;
-
-    width:100vw;
-
-    height:100vh;
-
-    overflow:hidden;
-
-
-    font-family:
-
-    "Yu Gothic",
-
-    "Hiragino Kaku Gothic ProN",
-
-    sans-serif;
-
-
-    background:#111;
-
-    color:white;
-
-
+    background-color: #0d0e12;
+    color: #e0e6ed;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
+/* 16:9のゲームコンテナ固定 */
+#game-container {
+    width: 100vw;
+    height: calc(100vw * 9 / 16);
+    max-height: 100vh;
+    max-width: calc(100vh * 16 / 9);
+    background: radial-gradient(circle, #1a1c24 0%, #0f1015 100%);
+    position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    overflow: hidden;
+}
 
-
-
-
-/* ================================
-   画面切替
-================================ */
-
-
+/* 画面切り替えクラス */
 .screen {
-
-
-    display:none;
-
-
-    width:100%;
-
-    height:100%;
-
-
-    position:absolute;
-
-
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 20px;
 }
-
-
 
 .screen.active {
-
-
-    display:flex;
-
-
+    display: flex;
+    flex-direction: column;
 }
 
-
-
-
-
-
-
-/* ================================
-   タイトル画面
-================================ */
-
-
-#title-screen {
-
-
-    justify-content:center;
-
-    align-items:center;
-
-
-    background:
-
-
-    radial-gradient(
-
-        circle,
-
-        #555,
-
-        #111
-
-    );
-
-
+/* ================= COMPONENTS ================= */
+.btn-main, .btn-menu, .btn-back, .btn-action {
+    background: linear-gradient(135deg, #ff007f 0%, #7f00ff 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(127, 0, 255, 0.3);
+    transition: transform 0.1s, opacity 0.2s;
 }
 
-
-
-.title-background {
-
-
-    text-align:center;
-
-
+.btn-main:active, .btn-menu:active {
+    transform: scale(0.95);
 }
 
-
-
-
-.title-background h1 {
-
-
-    font-size:64px;
-
-
-    letter-spacing:10px;
-
-
-    text-align:center;
-
-
-
-    text-shadow:
-
-
-    0 0 10px white,
-
-
-    0 0 30px #00aaff;
-
-
+.btn-back {
+    background: #333;
+    box-shadow: none;
 }
 
-
-
-
-
-#start-button {
-
-
-    margin-top:70px;
-
-
-    padding:20px 80px;
-
-
-
-    font-size:28px;
-
-
-    color:white;
-
-
-
-    background:
-
-
-    linear-gradient(
-
-        135deg,
-
-        #0066ff,
-
-        #00ffff
-
-    );
-
-
-
-    border:3px solid white;
-
-
-    border-radius:20px;
-
-
-    cursor:pointer;
-
-
+.screen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #2a2d3d;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-
-
-
-
-
-
-
-
-/* ================================
-   ホーム画面
-================================ */
-
-
-#home-screen {
-
-
-    flex-direction:column;
-
-
-    padding:20px;
-
-
-
-    background:
-
-
-    radial-gradient(
-
-        circle,
-
-        #553311,
-
-        #110800
-
-    );
-
-
+/* タイトル画面 */
+#screen-title {
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+.title-logo h1 {
+    font-size: 48px;
+    background: linear-gradient(to right, #00ffff, #ff007f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0,255,255,0.2);
 }
 
-
-
-
-
-
-/* プロフィール */
-
-.profile-area {
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    gap:15px;
-
-
-
+/* メニュー画面 */
+#screen-menu {
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 60%;
+}
+.btn-menu {
+    padding: 20px;
+    font-size: 18px;
 }
 
-
-
-
-#player-icon {
-
-
-    width:70px;
-
-    height:70px;
-
-
-
-    border-radius:50%;
-
-
-
-    background:#333;
-
-
-
-    display:flex;
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-    font-size:35px;
-
-
+/* ================= DECK EDITOR WINDOW ================= */
+.deck-workspace {
+    display: flex;
+    height: 85%;
+    gap: 15px;
+}
+.card-pool-area {
+    flex: 2;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+.deck-list-area {
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 5px;
 }
 
-
-
-
-
-
-
-.home-main {
-
-
-    flex:1;
-
-
-
-    display:flex;
-
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-
-    gap:60px;
-
-
-
-}
-
-
-
-
-
-
-/* お気に入りカード */
-
-#favorite-card-area {
-
-
-    width:260px;
-
-
-    height:380px;
-
-
-
-    border:4px solid #aaa;
-
-
-    border-radius:15px;
-
-
-
-    background:#222;
-
-
-
-    display:flex;
-
-
-    flex-direction:column;
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-
-}
-
-
-
-#favorite-card-image {
-
-
-    max-width:90%;
-
-
-    max-height:80%;
-
-
-}
-
-
-
-
-
-
-
-/* メニュー */
-
-.menu-area {
-
-
-    display:grid;
-
-
-
-    grid-template-columns:
-
-    repeat(2,220px);
-
-
-
-    gap:30px;
-
-
-
-}
-
-
-
-
-
-.card-button {
-
-
-    height:120px;
-
-
-
-    border-radius:15px;
-
-
-
-    border:3px solid #aaa;
-
-
-
-
-    background:
-
-
-    linear-gradient(
-
-        135deg,
-
-        #333,
-
-        #111
-
-    );
-
-
-
-
-    color:white;
-
-
-
-    font-size:20px;
-
-
-
-    cursor:pointer;
-
-
-}
-
-
-
-.card-button:hover {
-
-
-    transform:scale(1.05);
-
-
-}
-
-/* ================================
-   共通画面
-================================ */
-
-
-#deck-screen,
-#profile-screen,
-#mission-screen,
-#setting-screen,
-#battle-screen,
-#result-screen {
-
-
-    flex-direction:column;
-
-
-    padding:30px;
-
-
-
-    background:
-
-
-    radial-gradient(
-
-        circle,
-
-        #333,
-
-        #111
-
-    );
-
-
-}
-
-
-
-
-
-/* ================================
-   デッキ編集
-================================ */
-
-
-.deck-layout {
-
-
-    flex:1;
-
-
-
-    display:grid;
-
-
-
-    grid-template-columns:
-
-    1.5fr
-
-    0.8fr
-
-    1fr;
-
-
-
-    gap:20px;
-
-
-
-    overflow:hidden;
-
-
-}
-
-
-
-
-
-
-
-#card-pool,
-
-#card-detail,
-
-#deck-list {
-
-
-    border:
-
-    3px solid #777;
-
-
-
-    background:#1c1c1c;
-
-
-
-    padding:15px;
-
-
-
-    overflow:auto;
-
-
-}
-
-
-
-
-
-
-
-/* 検索 */
-
-#card-search {
-
-
-    width:100%;
-
-
-    padding:10px;
-
-
-    margin-bottom:10px;
-
-
-    background:#222;
-
-
-    color:white;
-
-
-    border:2px solid #777;
-
-
-}
-
-
-
-
-
-
-
-/* カード一覧 */
-
-#card-list {
-
-
-    display:grid;
-
-
-    grid-template-columns:
-
-    repeat(auto-fill,120px);
-
-
-
-    gap:10px;
-
-
-
-}
-
-
-
-
-
-
-/* カード */
-
-.card {
-
-
-    background:
-
-
-    linear-gradient(
-
-        135deg,
-
-        #444,
-
-        #111
-
-    );
-
-
-
-    border:
-
-    2px solid #999;
-
-
-
-    border-radius:10px;
-
-
-
-    padding:5px;
-
-
-
-    cursor:pointer;
-
-
-
-    text-align:center;
-
-
-
-}
-
-
-
-
-
-.card:hover {
-
-
-    transform:scale(1.05);
-
-
-    border-color:white;
-
-
-}
-
-
-
-
-
-
-
-.card img {
-
-
-    width:100%;
-
-
-    aspect-ratio:
-
-    375 / 563;
-
-
-
-    object-fit:cover;
-
-
-
-    border-radius:5px;
-
-
-}
-
-
-
-
-
-
-
-.card h3 {
-
-
-    font-size:14px;
-
-
-    margin:5px 0;
-
-
-}
-
-
-
-
-.card p {
-
-
-    font-size:12px;
-
-
-    margin:2px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/* ================================
-   カード詳細
-================================ */
-
-
-#card-detail {
-
-
-    text-align:center;
-
-
-}
-
-
-
-
-#card-detail img {
-
-
-    width:180px;
-
-
-    max-height:270px;
-
-
-
-    object-fit:contain;
-
-
-}
-
-
-
-
-
-
-
-
-/* ================================
-   デッキ欄
-================================ */
-
-
-#deck-list div {
-
-
-    display:flex;
-
-
-    justify-content:space-between;
-
-
-
-    align-items:center;
-
-
-
-    margin:5px;
-
-
-
-    padding:8px;
-
-
-
-    background:#333;
-
-
-
-    border-radius:5px;
-
-
-}
-
-
-
-#deck-list button {
-
-
-    cursor:pointer;
-
-
-}
-
-/* ================================
-   プロフィール・ミッション・設定
-================================ */
-
-
-#profile-content,
-
-#mission-list,
-
-.setting-list {
-
-
-    flex:1;
-
-
-    overflow:auto;
-
-
-    padding:20px;
-
-
-    background:#222;
-
-
-    border:
-
-    3px solid #777;
-
-
-
-}
-
-
-
-
-
-
-#icon-list,
-
-#title-list {
-
-
-    display:flex;
-
-
-    gap:15px;
-
-
-    flex-wrap:wrap;
-
-
-}
-
-
-
-
-
-
-
-/* ================================
-   ボタン共通
-================================ */
-
-
-button {
-
-
-    border-radius:10px;
-
-
-    border:2px solid #aaa;
-
-
-    padding:10px 25px;
-
-
-    background:#222;
-
-
-    color:white;
-
-
-    cursor:pointer;
-
-
-    font-size:16px;
-
-
-}
-
-
-
-
-button:hover {
-
-
-    background:#444;
-
-
-}
-
-
-
-
-
-
-.back-button {
-
-
-    margin-top:15px;
-
-
-}
-
-
-
-
-
-
-
-
-
-/* ================================
-   バトル画面
-================================ */
-
-
-#battle-screen {
-
-
-    background:
-
-
-    radial-gradient(
-
-        circle,
-
-        #1b2b45,
-
-        #050505
-
-    );
-
-
-}
-
-
-
-
-
-
-
+/* ================= BATTLE FIELD LAYOUT ================= */
 .battle-field {
-
-
-    flex:1;
-
-
-    display:flex;
-
-
-    flex-direction:column;
-
-
-    gap:15px;
-
-
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
 }
-
-
-
-
-
-
-#enemy-area,
-
-
-#player-area {
-
-
-    flex:1;
-
-
-    min-height:120px;
-
-
-    background:#151515;
-
-
-
-    border:
-
-    3px solid #777;
-
-
-
-    padding:20px;
-
-
-
-    display:flex;
-
-
-    align-items:center;
-
-
-    gap:10px;
-
-
+.field-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
 }
-
-
-
-
-
-
-
+.player-row, .opponent-row {
+    height: 15%;
+    background: rgba(20, 22, 30, 0.8);
+}
+.player-status, .opponent-status {
+    position: absolute;
+    left: 20px;
+    font-weight: bold;
+    color: #00ffff;
+}
+.hand-container {
+    display: flex;
+    gap: 5px;
+    height: 100%;
+    align-items: center;
+}
+.player-board, .opponent-board {
+    height: 25%;
+    flex-direction: column;
+    gap: 5px;
+    border-top: 1px dashed #2a2d3d;
+}
+.zone-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+    height: 45%;
+}
+.field-center {
+    height: 20%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    background: rgba(0,0,0,0.2);
+}
 #battle-log {
-
-
-    height:100px;
-
-
-    overflow:auto;
-
-
-    background:#050505;
-
-
-
-    border:
-
-    2px solid #555;
-
-
-    padding:10px;
-
-
+    font-size: 12px;
+    color: #aaa;
+    max-width: 50%;
+    overflow-y: auto;
 }
 
-
-
-
-
-
-
-
-/* 手札 */
-
-#hand-area {
-
-
-    height:150px;
-
-
-
-    display:flex;
-
-
-    gap:10px;
-
-
-
-    padding:10px;
-
-
-
-    background:#111;
-
-
-
-    border:
-
-    3px solid #888;
-
-
-
-    overflow-x:auto;
-
-
+/* 共通カードデザイン */
+.card-item {
+    width: 70px;
+    height: 95px;
+    background: #20222c;
+    border: 2px solid #444;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    font-size: 10px;
+    padding: 4px;
 }
 
-
-
-
-
-
-
-
-/* ================================
-   結果画面
-================================ */
-
-
-#result-screen {
-
-
-    justify-content:center;
-
-
-    align-items:center;
-
-
-
-    text-align:center;
-
-
-}
-
-
-
-
-
-#result-text {
-
-
-    font-size:70px;
-
-
-    text-shadow:
-
-
-    0 0 20px white;
-
-
-}
-
-
-
-
-
-
-
-
-
-/* ================================
-   横画面対応
-================================ */
-
-
-
-@media screen and (max-height:600px){
-
-
-
-    .title-background h1 {
-
-
-        font-size:45px;
-
-
-    }
-
-
-
-
-    #favorite-card-area {
-
-
-        width:200px;
-
-
-        height:280px;
-
-
-    }
-
-
-
-
-    .card-button {
-
-
-        height:80px;
-
-
-        font-size:15px;
-
-
-    }
-
-
-}
-
-
-
-
-
-
-/* ================================
-   スクロールバー
-================================ */
-
-
-::-webkit-scrollbar {
-
-
-    width:10px;
-
-
-}
-
-
-
-::-webkit-scrollbar-thumb {
-
-
-    background:#777;
-
-
-    border-radius:5px;
-
-
-}
+.hidden { display: none !important; }
