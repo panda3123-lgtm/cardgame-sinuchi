@@ -464,3 +464,79 @@ function endTurn(){
 
 
 }
+
+
+// ==========================
+// updateGame 拡張
+// ==========================
+
+function updateGame(state) {
+    if (!state) return;
+
+    // 1. LP更新（既存）
+    if (state.me) {
+        document.getElementById("player-lp").textContent = state.me.lp;
+        // 手札の更新
+        updateHand("player-hand", state.me.hand);
+        // 自分のボード更新
+        updateBoard("player-board", state.me.field);
+    }
+
+    if (state.enemy) {
+        document.getElementById("enemy-lp").textContent = state.enemy.lp;
+        // 相手のボード更新
+        updateBoard("enemy-board", state.enemy.field);
+    }
+
+    // 2. ターン交代の通知
+    if (state.turn === "me") {
+        addLog("あなたのターンです！");
+    } else {
+        addLog("相手のターンです...");
+    }
+}
+
+// 手札の表示更新
+function updateHand(containerId, cards) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+    cards.forEach(card => {
+        const div = createCardElement(card);
+        // 手札クリック時のアクションを登録
+        div.onclick = () => socket.emit("play-card", { cardId: card.id });
+        container.appendChild(div);
+    });
+}
+
+// 盤面の表示更新
+function updateBoard(containerId, cards) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+    cards.forEach(card => {
+        const div = createCardElement(card);
+        container.appendChild(div);
+    });
+}
+
+// カード要素を作成する汎用関数
+function createCardElement(card) {
+    const div = document.createElement("div");
+    div.className = "card-item";
+    div.innerHTML = `
+        <img src="images/${card.name}.png" alt="${card.name}">
+        <div class="card-name">${card.name}</div>
+    `;
+    return div;
+}
+
+// ログ出力用
+function addLog(message) {
+    const log = document.getElementById("battle-log");
+    if (!log) return;
+    const p = document.createElement("p");
+    p.textContent = message;
+    log.prepend(p);
+}
+
