@@ -1,171 +1,104 @@
-/**
- * デッキ構築・制限チェックシステム
- */
-const DeckEditor = {
-    currentDeck: [], // 現在編集中のデッキ（カード名の配列、またはオブジェクトの配列）
+// js/deck.js
+const DeckManager = {
+    cardPool: [], // 最初は空にしておく
+    currentDeck: [],
 
-    init() {
-        this.loadDeckFromStorage();
-        this.setupEventListeners();
-        this.populateFilters();
-    },
-
-    // フィルター用セレクトボックスの初期化
-    populateFilters() {
-        const colorSelect = document.getElementById('deck-filter-color');
-        if (!colorSelect) return;
+    // 起動時に非同期 (async) でデータを読み込む
+    async init() {
+        await this.loadCardData(); // JSONの読み込みを待つ
         
-        // 登場するすべての色を抽出
-        const colors = new Set();
-        Game.cardsData.forEach(c => {
-            if (Array.isArray(c.color)) {
-                c.color.forEach(col => colors.add(col));
-            } else if (c.color) {
-                colors.add(c.color);
-            }
-        });
+        this.renderCardPool();
+        this.updateDeckView();
 
-        colors.forEach(color => {
-            const opt = document.createElement('option');
-            opt.value = color;
-            opt.textContent = color;
-            colorSelect.appendChild(opt);
-        });
-    },
-
-    setupEventListeners() {
-        const searchInput = document.getElementById('deck-search-input');
-        const colorSelect = document.getElementById('deck-filter-color');
-        const saveBtn = document.getElementById('btn-save-deck');
-
-        if (searchInput) searchInput.addEventListener('input', () => this.renderPool());
-        if (colorSelect) colorSelect.addEventListener('change', () => this.renderPool());
-        if (saveBtn) saveBtn.addEventListener('click', () => this.saveDeckToStorage());
-    },
-
-    // カードプール（左側）の描画（検索・フィルター対応）
-    renderPool() {
-        const poolList = document.getElementById('card-pool-list');
-        if (!poolList) return;
-        poolList.innerHTML = '';
-
-        const searchText = document.getElementById('deck-search-input').value.toLowerCase();
-        const selectedColor = document.getElementById('deck-filter-color').value;
-
-        Game.cardsData.forEach(card => {
-            // 検索フィルター
-            const matchName = card.カード名.toLowerCase().includes(searchText);
-            let matchColor = true;
-            if (selectedColor) {
-                if (Array.isArray(card.color)) {
-                    matchColor = card.color.includes(selectedColor);
-                } else {
-                    matchColor = card.color === selectedColor;
-                }
-            }
-
-            if (matchName && matchColor) {
-                const cardEl = CardSystem.createCardElement(card, 'pool');
-                poolList.appendChild(cardEl);
+        // 50枚〜70枚のルールチェック
+        document.getElementById('btn-save-deck')?.addEventListener('click', () => {
+            if(this.currentDeck.length < 50) {
+                alert(`デッキは50枚以上必要です！（現在: ${this.currentDeck.length}枚）`);
+            } else if(this.currentDeck.length > 70) {
+                alert(`デッキは70枚以下にしてください！（現在: ${this.currentDeck.length}枚）`);
+            } else {
+                alert("デッキを保存しました！");
             }
         });
     },
 
-    // デッキ（右側）の描画
-    renderDeck() {
-        const deckContainer = document.getElementById('current-deck-cards');
-        const countDisplay = document.getElementById('deck-card-count');
-        if (!deckContainer) return;
-        deckContainer.innerHTML = '';
+    // cards.json を読み込む処理
+    async loadCardData() {
+        try {
+            const response = await fetch('cards.json'); // JSONファイルを取得
+            if (!response.ok) throw new Error("Network response was not ok");
+            this.cardPool = await response.json(); // 変数に格納
+        } catch (error) {
+            console.error("カードデータの読み込みに失敗しました:", error);
+            alert("cards.json の読み込みに失敗しました。\n※HTMLを直接開いている場合は、ローカルサーバー経由で開く必要があります。");
+        }
+    },
 
-        // 枚数カウント更新
-        countDisplay.textContent = this.currentDeck.length;
-
-        // デッキ内のカードを名前ごとに集計して見やすく表示
-        const counts = {};
-        this.currentDeck.forEach(card => {
-            counts[card.カード名] = (counts[card.カード名] || 0) + 1;
-        });
-
-        Object.keys(counts).forEach(cardName => {
-            const cardData = Game.cardsData.find(c => c.カード名 === cardName);
-            if (!cardData) return;
-
-            const row = document.createElement('div');
-            row.className = 'deck-row-item';
-            row.style.display = 'flex';
-            row.style.justify = 'space-between';
-            row.style.padding = '5px';
-            row.style.background = 'rgba(255,255,255,0.05)';
-            row.style.marginBottom = '4px';
-            row.style.cursor = 'pointer';
-
-            row.innerHTML = `
-                <span>${cardData.カード名} x${counts[cardName]}</span>
-                <span style="color: #ff4d4d;">削除</span>
-            `;
-
-            row.addEventListener('click', () => this.removeCardFromDeck(cardName));
-            deckContainer.appendChild(row);
+    renderCardPool() {
+        const poolEl = document.getElementById('card-pool-list');
+        if(!poolEl) return;
+        poolEl.innerHTML = '';
+        
+        this.cardPool.forEach(card => {
+            const cardEl = this.createCardElement(card);
+            cardEl.onclick = () => this.addToDeck(card);
+            poolEl.appendChild(cardEl);
         });
     },
 
-    // カードをデッキに追加（制限チェック付き）
-    addCardToDeck(cardData) {
-        // 1. 同名カードは3枚まで
-        const sameCardCount = this.currentDeck.filter(c => c.カード名 === cardData.カード名).length;
-        if (sameCardCount >= 3) {
-            alert(`「${cardData.カード名}」はデッキに3枚までしか入れられません。`);
-            return;
-        }
+    updateDeckView() {
+        const deckEl = document.getElementById('current-deck-cards');
+        if(!deckEl) return;
+        deckEl.innerHTML = '';
+        deckEl.className = 'card-grid';
 
-        // 2. 最大70枚まで
-        if (this.currentDeck.length >= 70) {
-            alert("デッキの上限枚数は70枚です。");
-            return;
-        }
-
-        this.currentDeck.push(cardData);
-        this.renderDeck();
-    },
-
-    // カードをデッキから削除
-    removeCardFromDeck(cardName) {
-        const index = this.currentDeck.findIndex(c => c.カード名 === cardName);
-        if (index !== -1) {
-            this.currentDeck.splice(index, 1);
-        }
-        this.renderDeck();
-    },
-
-    // ストレージに保存（50枚〜70枚の判定）
-    saveDeckToStorage() {
-        if (this.currentDeck.length < 50 || this.currentDeck.length > 70) {
-            alert(`デッキの枚数が不正です（現在: ${this.currentDeck.length}枚）。\n50枚以上70枚以下に調整してください。`);
-            return;
-        }
-
-        // カード名だけの配列にして保存容量を節約
-        const saveNames = this.currentDeck.map(c => c.カード名);
-        localStorage.setItem('errata_deck', JSON.stringify(saveNames));
-        alert("デッキを保存しました！");
-
-        // ミッション達成チェック（デッキ保存）
-        if (typeof MissionSystem !== 'undefined') {
-            MissionSystem.triggerCheck('m002');
+        this.currentDeck.forEach((card, index) => {
+            const cardEl = this.createCardElement(card);
+            cardEl.onclick = () => this.removeFromDeck(index);
+            deckEl.appendChild(cardEl);
+        });
+        
+        const header = deckEl.previousElementSibling;
+        if(header && header.tagName === 'H3') {
+            header.textContent = `現在のデッキ (${this.currentDeck.length} / 70)`;
         }
     },
 
-    // ストレージから読み込み
-    loadDeckFromStorage() {
-        const stored = localStorage.getItem('errata_deck');
-        if (stored) {
-            const names = JSON.parse(stored);
-            this.currentDeck = names.map(name => Game.cardsData.find(c => c.カード名 === name)).filter(Boolean);
-        } else {
-            this.currentDeck = [];
+    addToDeck(card) {
+        if(this.currentDeck.length >= 70) {
+            alert("デッキは最大70枚までです！");
+            return;
         }
-        Game.currentDeck = this.currentDeck;
-        this.renderDeck();
+        this.currentDeck.push(card);
+        this.updateDeckView();
+    },
+
+    removeFromDeck(index) {
+        this.currentDeck.splice(index, 1);
+        this.updateDeckView();
+    },
+
+    createCardElement(card) {
+        const el = document.createElement('div');
+        el.className = 'card-item';
+        el.title = card.effect ? card.effect : '効果なし';
+        
+        const bottomDisplay = card.atk !== null 
+            ? `<div style="font-size:10px; text-align:center; color:#ff8888;">ATK:${card.atk}</div>` 
+            : `<div style="font-size:10px; text-align:center; color:#aaa;">${card.type}</div>`;
+
+        el.innerHTML = `
+            <div style="font-size:10px; background:#111; color:#fff; padding:2px; text-align:center; border-bottom: 1px solid #444;">Cost:${card.cost}</div>
+            
+            <div style="flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; padding:2px;">
+                <span style="font-size:8px; color:#666; text-align:center; word-break:break-all;">${card.image || 'No Image'}</span>
+            </div>
+            
+            <div class="card-name" style="color:#fff; border-top: 1px solid #444; padding-top:2px;">${card.name}</div>
+            ${bottomDisplay}
+        `;
+        return el;
     }
 };
+
+window.addEventListener('DOMContentLoaded', () => DeckManager.init());
