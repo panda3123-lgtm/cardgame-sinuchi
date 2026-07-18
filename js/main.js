@@ -1,93 +1,79 @@
-// ====================================================================
-// エラッタオリジナリティ - main.js (完全修正版)
-// ====================================================================
+// js/main.js
+const Game = {
+    // ゲームの全体状態をここに集約
+    state: {
+        currentScreen: 'screen-title',
+        profile: { name: 'プレイヤー', title: '初心者' },
+        deck: [],
+        cards: [] // cards.jsonから読み込む
+    },
 
-const GameClient = {
-    socket: null,
-    gameState: null,
-    uiState: { phase: "IDLE", selectedAttackerIndex: null },
-
-    init() {
-        this.socket = io('http://localhost:3000');
+    async init() {
+        // 1. データの読み込み
+        await this.loadData();
+        // 2. イベント登録
         this.bindEvents();
+        // 3. 初期表示
+        this.switchScreen('screen-title');
+        console.log("Game System Initialized");
+    },
+
+    async loadData() {
+        try {
+            const res = await fetch('cards.json');
+            this.state.cards = await res.json();
+            console.log("カードデータ読み込み完了");
+        } catch (e) {
+            console.error("カード読み込み失敗", e);
+        }
     },
 
     bindEvents() {
-        // --- 画面切り替え（イベント委譲） ---
+        // 画面切り替えボタンの共通化
         document.addEventListener('click', (e) => {
-            const button = e.target.closest('button[data-target]');
-            if (button) {
-                const targetId = button.getAttribute('data-target');
-                const targetScreen = document.getElementById(targetId);
-                if (targetScreen) {
-                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                    targetScreen.classList.add('active');
-                }
-            }
+            const btn = e.target.closest('[data-target]');
+            if (btn) this.switchScreen(btn.getAttribute('data-target'));
         });
 
-        // --- 通信イベント ---
-        this.socket.on("match-found", (data) => {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if(document.getElementById("battle-screen")) document.getElementById("battle-screen").classList.add('active');
-            this.logMessage("対戦相手が見つかりました！バトル開始！");
-        });
+        // デッキ構築画面の処理
+        const btnSave = document.getElementById('btn-save-deck');
+        if (btnSave) btnSave.onclick = () => this.saveDeck();
+    },
 
-        this.socket.on("game-update", (state) => {
-            this.gameState = state;
-            this.resetUIState();
-            this.renderAll();
-        });
+    switchScreen(targetId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(targetId)?.classList.add('active');
+        this.state.currentScreen = targetId;
 
-        // --- 操作イベント ---
-        const btnJoin = document.getElementById("btn-join");
-        if (btnJoin) {
-            btnJoin.addEventListener("click", (e) => {
-                const playerName = document.getElementById("input-name") ? document.getElementById("input-name").value : "ゲスト";
-                const sampleDeck = [{カード名: "一般兵士", type: "モンスター", cost: 1, ATK: 1000}];
-                this.socket.emit("join-lobby", { name: playerName, deck: sampleDeck });
-                if(document.getElementById("lobby-status")) document.getElementById("lobby-status").textContent = "マッチング待機中...";
-                e.target.disabled = true;
-            });
+        // 画面ごとの初期化処理
+        if (targetId === 'screen-deck') this.renderDeckEditor();
+    },
+
+    renderDeckEditor() {
+        const pool = document.getElementById('card-pool-list');
+        pool.innerHTML = '';
+        this.state.cards.forEach(card => {
+            const el = document.createElement('div');
+            el.className = 'card-item';
+            el.innerHTML = `<div>Cost:${card.cost}</div><div>${card.name}</div>`;
+            el.onclick = () => this.addCardToDeck(card);
+            pool.appendChild(el);
+        });
+    },
+
+    addCardToDeck(card) {
+        this.state.deck.push(card);
+        alert(`${card.name} をデッキに追加しました！`);
+    },
+
+    saveDeck() {
+        if (this.state.deck.length < 50) {
+            alert("50枚以上必要です！");
+            return;
         }
-    },
-
-    resetUIState() { this.uiState = { phase: "IDLE", selectedAttackerIndex: null }; },
-    
-    logMessage(msg) {
-        const logArea = document.getElementById("battle-log");
-        if (logArea) {
-            const p = document.createElement("p");
-            p.textContent = msg;
-            logArea.prepend(p);
-        }
-    },
-
-    renderAll() {
-        if (!this.gameState) return;
-        this.renderStatus();
-        this.renderBoard("player-board", this.gameState.me.board, true);
-    },
-
-    renderStatus() {
-        const s = this.gameState;
-        const myStatus = document.getElementById("player-status");
-        if(myStatus) myStatus.innerHTML = "<strong>" + s.me.name + "</strong><br>LP: " + s.me.lp;
-        const turnDisp = document.getElementById("turn-display");
-        if(turnDisp) turnDisp.textContent = s.isMyTurn ? "あなたのターン" : "相手のターン";
-    },
-
-    renderBoard(id, data, isMine) {
-        const cont = document.getElementById(id);
-        if(!cont) return;
-        cont.innerHTML = "";
-        data.forEach((card, i) => {
-            const el = document.createElement("div");
-            el.className = card ? "card-item" : "empty-slot";
-            if (card) el.textContent = card.カード名;
-            cont.appendChild(el);
-        });
+        localStorage.setItem('myDeck', JSON.stringify(this.state.deck));
+        alert("デッキを保存しました。これで対戦も可能です！");
     }
 };
 
-window.addEventListener('DOMContentLoaded', () => GameClient.init());
+window.addEventListener('DOMContentLoaded', () => Game.init());
