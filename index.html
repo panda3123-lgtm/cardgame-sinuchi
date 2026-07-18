@@ -1,5 +1,5 @@
 // ====================================================================
-// エラッタオリジナリティ - main.js (完全統合フロントエンド・決定版)
+// エラッタオリジナリティ - main.js (完全修正版)
 // ====================================================================
 
 const GameClient = {
@@ -13,7 +13,7 @@ const GameClient = {
     },
 
     bindEvents() {
-        // --- 画面切り替え（イベント委譲で確実に動作） ---
+        // --- 画面切り替え（イベント委譲） ---
         document.addEventListener('click', (e) => {
             const button = e.target.closest('button[data-target]');
             if (button) {
@@ -29,7 +29,7 @@ const GameClient = {
         // --- 通信イベント ---
         this.socket.on("match-found", (data) => {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById("battle-screen")?.classList.add('active');
+            if(document.getElementById("battle-screen")) document.getElementById("battle-screen").classList.add('active');
             this.logMessage("対戦相手が見つかりました！バトル開始！");
         });
 
@@ -39,70 +39,21 @@ const GameClient = {
             this.renderAll();
         });
 
-        this.socket.on("opponent-disconnected", () => {
-            alert("対戦相手が切断しました。あなたの勝利です！");
-            location.reload();
-        });
-
-        // --- UI操作イベント ---
-        document.getElementById("btn-join")?.addEventListener("click", (e) => {
-            const playerName = document.getElementById("input-name")?.value || "ゲスト";
-            const sampleDeck = [
-                { カード名: "一般兵士", type: "モンスター", cost: 1, ATK: 1000 },
-                { カード名: "マネネ", type: "モンスター", cost: 2, ATK: 800 },
-                { カード名: "桜の精霊", type: "モンスター", cost: 4, ATK: 1500 },
-                { カード名: "参拝", type: "魔法", cost: 1 },
-                { カード名: "自衛用拳銃", type: "トラップ", cost: 2 },
-                { カード名: "クトゥルフ", type: "モンスター", cost: 8, ATK: 3000 },
-                { カード名: "ルルイエ", type: "魔法", cost: 3 }
-            ];
-            this.socket.emit("join-lobby", { name: playerName, deck: sampleDeck });
-            const lobbyStatus = document.getElementById("lobby-status");
-            if(lobbyStatus) lobbyStatus.textContent = "マッチング待機中...";
-            e.target.disabled = true;
-        });
-
-        document.getElementById("btn-turn-end")?.addEventListener("click", () => {
-            if (this.gameState?.isMyTurn) this.socket.emit("end-turn");
-        });
-
-        document.getElementById("opponent-status-area")?.addEventListener("click", () => {
-            this.handleDirectAttack();
-        });
-    },
-
-    // --- プレイヤー操作ロジック ---
-    handleHandClick(index, data) {
-        if (!this.gameState?.isMyTurn || this.gameState.me.currentCost < data.cost) return;
-        this.socket.emit("use-card", { cardIndex: index });
-        this.logMessage(`${data.カード名} を使用しました！`);
-    },
-
-    handleMyBoardClick(index, data) {
-        if (!this.gameState?.isMyTurn || data.hasAttacked) return;
-        this.uiState.phase = "ATTACK_TARGETING";
-        this.uiState.selectedAttackerIndex = index;
-        this.renderAll();
-    },
-
-    handleOpponentBoardClick(index, data) {
-        if (this.uiState.phase === "ATTACK_TARGETING" && this.uiState.selectedAttackerIndex !== null) {
-            this.socket.emit("attack", { attackerIndex: this.uiState.selectedAttackerIndex, targetIndex: index });
-            this.resetUIState();
-        }
-    },
-
-    handleDirectAttack() {
-        if (this.uiState.phase === "ATTACK_TARGETING" && this.uiState.selectedAttackerIndex !== null) {
-            if (!this.gameState.opp.board.some(slot => slot !== null)) {
-                this.socket.emit("attack", { attackerIndex: this.uiState.selectedAttackerIndex, targetIndex: null });
-                this.resetUIState();
-            }
+        // --- 操作イベント ---
+        const btnJoin = document.getElementById("btn-join");
+        if (btnJoin) {
+            btnJoin.addEventListener("click", (e) => {
+                const playerName = document.getElementById("input-name") ? document.getElementById("input-name").value : "ゲスト";
+                const sampleDeck = [{カード名: "一般兵士", type: "モンスター", cost: 1, ATK: 1000}];
+                this.socket.emit("join-lobby", { name: playerName, deck: sampleDeck });
+                if(document.getElementById("lobby-status")) document.getElementById("lobby-status").textContent = "マッチング待機中...";
+                e.target.disabled = true;
+            });
         }
     },
 
     resetUIState() { this.uiState = { phase: "IDLE", selectedAttackerIndex: null }; },
-
+    
     logMessage(msg) {
         const logArea = document.getElementById("battle-log");
         if (logArea) {
@@ -112,35 +63,18 @@ const GameClient = {
         }
     },
 
-    // --- レンダリング ---
     renderAll() {
         if (!this.gameState) return;
-        if (this.gameState.winnerId) alert(this.gameState.winnerId === this.socket.id ? "勝利！" : "敗北...");
-        
         this.renderStatus();
-        this.renderHand(this.gameState.me.hand);
         this.renderBoard("player-board", this.gameState.me.board, true);
-        this.renderBoard("opponent-board", this.gameState.opp.board, false);
     },
 
     renderStatus() {
         const s = this.gameState;
-        document.getElementById("player-status")!.innerHTML = `<strong>${s.me.name}</strong><br>LP: ${s.me.lp} | Cost: ${s.me.currentCost}`;
-        document.getElementById("opponent-status-area")!.innerHTML = `<strong>${s.opp.name}</strong><br>LP: ${s.opp.lp}`;
-        document.getElementById("turn-display")!.textContent = s.isMyTurn ? "あなたのターン" : "相手のターン";
-        const btn = document.getElementById("btn-turn-end");
-        if(btn) btn.disabled = !s.isMyTurn;
-    },
-
-    renderHand(hand) {
-        const cont = document.getElementById("player-hand");
-        if(!cont) return;
-        cont.innerHTML = "";
-        hand.forEach((card, i) => {
-            const el = this.createCardElement(card);
-            el.onclick = () => this.handleHandClick(i, card);
-            cont.appendChild(el);
-        });
+        const myStatus = document.getElementById("player-status");
+        if(myStatus) myStatus.innerHTML = "<strong>" + s.me.name + "</strong><br>LP: " + s.me.lp;
+        const turnDisp = document.getElementById("turn-display");
+        if(turnDisp) turnDisp.textContent = s.isMyTurn ? "あなたのターン" : "相手のターン";
     },
 
     renderBoard(id, data, isMine) {
@@ -148,21 +82,11 @@ const GameClient = {
         if(!cont) return;
         cont.innerHTML = "";
         data.forEach((card, i) => {
-            const el = card ? this.createCardElement(card) : document.createElement("div");
+            const el = document.createElement("div");
             el.className = card ? "card-item" : "empty-slot";
-            if (card) {
-                el.onclick = () => isMine ? this.handleMyBoardClick(i, card) : this.handleOpponentBoardClick(i, card);
-                if (isMine && this.uiState.selectedAttackerIndex === i) el.style.border = "3px solid yellow";
-            }
+            if (card) el.textContent = card.カード名;
             cont.appendChild(el);
         });
-    },
-
-    createCardElement(card) {
-        const el = document.createElement("div");
-        el.className = "card-item";
-        el.innerHTML = `<div class="card-name">${card.カード名}</div><div class="card-cost">C:${card.cost}</div>`;
-        return el;
     }
 };
 
