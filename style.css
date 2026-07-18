@@ -27,10 +27,10 @@ body {
     background: radial-gradient(circle, #1a1c24 0%, #0f1015 100%);
     position: relative;
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    overflow: hidden;
+    overflow: hidden; /* コンテナ自体は固定 */
 }
 
-/* 画面切り替えクラス */
+/* 🛑 全画面共通：コンテンツが溢れたら自動でスクロール */
 .screen {
     display: none;
     width: 100%;
@@ -39,12 +39,12 @@ body {
     top: 0;
     left: 0;
     padding: 20px;
+    overflow-y: auto; /* 全画面でスクロール有効 */
+    flex-direction: column;
 }
 
 .screen.active {
     display: flex;
-    flex-direction: column;
-    overflow: hidden; /* 🛑 画面自体が16:9を突き破るのを絶対に防ぐ */
 }
 
 /* ================= COMPONENTS ================= */
@@ -59,6 +59,7 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(127, 0, 255, 0.3);
     transition: transform 0.1s, opacity 0.2s;
+    flex-shrink: 0;
 }
 
 .btn-main:active, .btn-menu:active {
@@ -77,7 +78,7 @@ body {
     border-bottom: 2px solid #2a2d3d;
     padding-bottom: 10px;
     margin-bottom: 15px;
-    flex-shrink: 0; /* ヘッダーが潰れるのを防ぐ */
+    flex-shrink: 0;
 }
 
 /* タイトル画面 */
@@ -114,9 +115,9 @@ body {
 /* ================= DECK EDITOR WINDOW ================= */
 .deck-workspace {
     display: flex;
-    height: 85%;
+    flex: 1; /* 残りスペースを使い切る */
     gap: 15px;
-    min-height: 0; /* 🛑 16:9の枠内でFlexboxを縮ませる魔法のコード */
+    min-height: 0;
 }
 .card-pool-area {
     flex: 2;
@@ -125,7 +126,7 @@ body {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* 🛑 */
+    min-height: 0;
 }
 .deck-list-area {
     flex: 1;
@@ -135,15 +136,15 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 0; /* 🛑 */
+    min-height: 0;
 }
 .card-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
-    overflow-y: auto; /* 縦スクロールを有効化 */
+    overflow-y: auto;
     flex-grow: 1;
-    height: 0;        /* 🛑 高さを一旦リセットして強制スクロール */
+    height: 0;
     padding-right: 5px;
 }
 
@@ -153,14 +154,14 @@ body {
     flex-direction: column;
     height: 100%;
     justify-content: space-between;
-    min-height: 0; /* 🛑 バトル画面全体が伸びるのを防ぐ */
+    min-height: 0;
 }
 .field-row {
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    flex-shrink: 0; /* 各列が縦に潰れるのを防ぐ */
+    flex-shrink: 0;
 }
 .player-row, .opponent-row {
     height: 15%;
@@ -177,7 +178,7 @@ body {
     gap: 5px;
     height: 100%;
     align-items: center;
-    overflow-x: auto; /* 手札が溢れたら横スクロールさせる保険 */
+    overflow-x: auto;
 }
 .player-board, .opponent-board {
     height: 25%;
@@ -200,20 +201,18 @@ body {
     padding: 0 40px;
     background: rgba(0,0,0,0.2);
     flex-shrink: 0;
-    min-height: 0;
 }
 
-/* 🛑 バトルログのスクロールバグ完全修正 */
 #battle-log {
     font-size: 12px;
     color: #aaa;
     max-width: 50%;
-    height: 100%;      /* 中央エリア（field-center）の高さに完全に合わせる */
-    overflow-y: auto;  /* ログが溜まったら縦スクロール */
+    height: 100%;
+    overflow-y: auto;
     padding-right: 5px;
 }
 
-/* 共通カードデザイン */
+/* 🛑 カードデザイン：画像とテキストの完全配置 */
 .card-item {
     width: 70px;
     height: 95px;
@@ -222,9 +221,30 @@ body {
     border-radius: 4px;
     position: relative;
     cursor: pointer;
-    font-size: 10px;
     padding: 4px;
-    flex-shrink: 0; /* カード自体が縦に潰れて極小化するのを防ぐ */
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.card-item img {
+    width: 100%;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 2px;
+    margin-bottom: 3px;
+    background-color: #15161d;
+}
+
+.card-name {
+    font-size: 8px;
+    font-weight: bold;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
 }
 
 .hidden { display: none !important; }
