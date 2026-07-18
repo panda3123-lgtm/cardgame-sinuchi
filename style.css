@@ -187,23 +187,38 @@ body {
 }
 
 /* ================= CARDS ================= */
+/* ================= CARDS (修正版) ================= */
 .card-item {
     width: 100%; 
     aspect-ratio: 7 / 10;
-    background: #20222c; 
-    border: 2px solid #444; 
+    /* 背景を白っぽく、文字を黒くして確実に読めるようにしました */
+    background-color: #e0e0e0; 
+    color: #000000; 
+    border: 2px solid #333; 
     border-radius: 4px;
     display: flex; 
     flex-direction: column; 
     cursor: pointer; 
     padding: 4px;
     transition: transform 0.1s, border-color 0.2s;
+    font-size: 10px; /* 文字サイズも調整 */
+    font-weight: bold;
 }
 
 .card-item:hover {
     transform: translateY(-2px);
     border-color: #00ffff;
+    background-color: #ffffff; /* ホバーで少し明るく */
 }
+
+/* カード内の文字が見えるようにする設定 */
+.card-name {
+    margin-top: auto;
+    background: rgba(255,255,255,0.8);
+    padding: 2px;
+    text-align: center;
+}
+
 
 /* ================= BATTLE SCREEN ================= */
 .battle-field {
