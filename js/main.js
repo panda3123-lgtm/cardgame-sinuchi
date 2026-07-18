@@ -123,3 +123,39 @@ function addLog(message) {
     log.prepend(p);
 }
 
+
+
+// ==========================================
+// オンライン対戦機能の統合（main.js の最後に追加）
+// ==========================================
+
+const OnlineSystem = {
+    socket: null,
+    
+    init() {
+        // ソケット接続
+        this.socket = io('http://localhost:3000');
+        
+        // サーバーからの全状態受信イベントを待ち受け
+        this.socket.on('game_update', (state) => {
+            updateGame(state); // 既存の描画関数を呼び出し
+        });
+
+        // 対戦開始時の処理
+        this.socket.on('match_found', (data) => {
+            Game.switchScreen('screen-battle');
+            addLog(`対戦相手発見: ${data.opponent}`);
+        });
+    },
+
+    // サーバーへアクションを送信する共通窓口
+    sendAction(type, payload) {
+        this.socket.emit('player_action', { type, payload });
+    }
+};
+
+// 起動時に OnlineSystem も初期化するよう追記
+window.addEventListener('DOMContentLoaded', () => {
+    Game.init();
+    OnlineSystem.init(); // 追加
+});
