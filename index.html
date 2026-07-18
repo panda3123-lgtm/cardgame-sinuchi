@@ -1,70 +1,806 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+
+<title>
+エラッタオリジナリティ
+</title>
+
+
+<link rel="stylesheet" href="style.css">
+
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+
     <meta charset="UTF-8">
-    <title>エラッタオリジナリティ</title>
-    <!-- ここにCSS等を記述 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>エラッタオリジナリティ - Errata Originality</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Socket.io (オンライン対戦用・後ほどサーバーと連携) -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
+
+
 <body>
 
-    <!-- 画面の要素（既存のHTML） -->
-    <div id="title-screen" class="screen active">
-        <button data-target="lobby-screen">ゲームスタート</button>
+
+
+<!-- =====================
+タイトル画面
+===================== -->
+
+<section
+id="title-screen"
+class="screen active">
+
+
+<div class="title-background">
+
+
+<h1>
+エラッタ<br>
+オリジナリティ
+</h1>
+
+
+<button id="start-button">
+
+TAP TO START
+
+</button>
+
+
+</div>
+
+
+</section>
+
+<!-- =====================
+ホーム画面
+===================== -->
+
+<section
+id="home-screen"
+class="screen">
+
+
+<header class="profile-area">
+
+
+<div id="player-icon">
+👤
+</div>
+
+
+<div>
+
+<div id="player-name">
+プレイヤー
+</div>
+
+
+<div id="player-title">
+初心者
+</div>
+
+
+</div>
+
+
+</header>
+
+
+
+
+
+<main class="home-main">
+
+
+<!-- お気に入りカード -->
+
+<div id="favorite-card-area">
+
+
+<img
+id="favorite-card-image"
+src=""
+alt="お気に入りカード">
+
+
+<p id="favorite-card-name">
+
+お気に入りカード
+
+</p>
+
+
+</div>
+
+
+
+
+
+<!-- メニュー -->
+
+<div class="menu-area">
+
+
+<button
+class="card-button"
+data-screen="battle-screen">
+
+🃏 オンライン対戦
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="deck-screen">
+
+🃏 デッキ編集
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="profile-screen">
+
+👤 プロフィール
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="mission-screen">
+
+🎯 ミッション
+
+</button>
+
+
+
+<button
+class="card-button"
+data-screen="setting-screen">
+
+⚙ 設定
+
+</button>
+
+
+</div>
+
+
+
+</main>
+
+
+</section>
+
+
+
+
+
+
+<!-- =====================
+プロフィール画面
+===================== -->
+
+
+<!-- =====================
+プロフィール画面
+===================== -->
+
+<section
+id="profile-screen"
+class="screen">
+
+
+<h2>
+プロフィール
+</h2>
+
+
+
+<div id="profile-content">
+
+
+
+<!-- 現在のプロフィール -->
+
+<div class="current-profile">
+
+
+<div id="profile-big-icon">
+
+</div>
+
+
+
+<h3 id="profile-display-name">
+
+プレイヤー
+
+</h3>
+
+
+
+<p id="profile-display-title">
+
+初心者
+
+</p>
+
+
+
+</div>
+
+
+
+
+
+
+<!-- 名前変更 -->
+
+<button
+onclick="changePlayerName()">
+
+名前変更
+
+</button>
+
+
+
+
+
+
+<!-- アイコン -->
+
+<h3>
+アイコン
+</h3>
+
+
+<div id="icon-list">
+
+</div>
+
+
+
+
+
+
+
+<!-- 称号 -->
+
+<h3>
+称号
+</h3>
+
+
+<div id="title-list">
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+
+</section>
+
+<!-- =====================
+デッキ編集画面
+===================== -->
+
+<section
+id="deck-screen"
+class="screen">
+
+
+<h2>
+デッキ編集
+</h2>
+
+
+
+<div class="deck-layout">
+
+
+
+<!-- カード一覧 -->
+
+<div id="card-pool">
+
+
+<h3>
+カード一覧
+</h3>
+
+
+
+<input
+type="text"
+id="card-search"
+placeholder="カード検索">
+
+
+
+<div id="card-list">
+
+</div>
+
+
+</div>
+
+
+
+
+
+<!-- カード詳細 -->
+
+<div id="card-detail">
+
+カードを選択してください。
+
+</div>
+
+
+
+
+
+<!-- デッキ -->
+
+<div id="deck-list">
+
+デッキ
+
+</div>
+
+
+
+</div>
+
+
+
+
+<button
+onclick="saveDeck()">
+
+デッキ保存
+
+</button>
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+ミッション画面
+===================== -->
+
+<section
+id="mission-screen"
+class="screen">
+
+
+<h2>
+ミッション
+</h2>
+
+
+<div id="mission-list">
+
+</div>
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+設定画面
+===================== -->
+
+
+<section
+id="setting-screen"
+class="screen">
+
+
+<h2>
+設定
+</h2>
+
+
+
+<div class="setting-list">
+
+
+<label>
+
+音量
+
+<input
+type="range">
+
+</label>
+
+
+
+<label>
+
+演出
+
+<input
+type="checkbox"
+checked>
+
+</label>
+
+
+
+<label>
+
+バトルログ
+
+<input
+type="checkbox"
+checked>
+
+</label>
+
+
+</div>
+
+
+
+
+<button
+class="back-button">
+
+戻る
+
+</button>
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+バトル画面
+===================== -->
+
+
+<section
+id="battle-screen"
+class="screen">
+
+
+<h2>
+Battle
+</h2>
+
+
+
+
+<div class="battle-field">
+
+
+<div id="enemy-area">
+
+相手フィールド
+
+</div>
+
+
+
+<div id="battle-log">
+
+バトルログ
+
+</div>
+
+
+
+<div id="player-area">
+
+自分フィールド
+
+</div>
+
+
+
+</div>
+
+
+
+
+
+<div id="hand-area">
+
+手札
+
+</div>
+
+
+
+
+<button
+id="end-turn-button">
+
+ターン終了
+
+</button>
+
+
+
+
+</section>
+
+
+
+
+
+
+
+<!-- =====================
+結果画面
+===================== -->
+
+
+<section
+id="result-screen"
+class="screen">
+
+
+<h1
+id="result-text">
+
+VICTORY
+
+</h1>
+
+
+
+<p>
+
+ターン数：
+
+<span id="turn-count">
+
+</span>
+
+
+</p>
+
+
+
+<button>
+
+ホームへ
+
+</button>
+
+
+
+</section>
+
+
+
+
+
+
+<!-- =====================
+JavaScript
+===================== -->
+
+
+<script src="js/main.js"></script>
+
+<script src="js/card.js"></script>
+
+<script src="js/deck.js"></script>
+
+<script src="js/profile.js"></script>
+
+
+<script src="js/mission.js"></script>
+  
+    <!-- 全体コンテナ（スマホ横画面 16:9 を意識） -->
+    <div id="game-container">
+
+        <!-- ================= TITLE SCREEN ================= -->
+        <section id="screen-title" class="screen active">
+            <div class="title-logo">
+                <h1>エラッタオリジナリティ</h1>
+                <p>〜 Errata Originality 〜</p>
+            </div>
+            <button class="btn-main" onclick="Game.switchScreen('screen-menu')">GAME START</button>
+        </section>
+
+        <!-- ================= MENU SCREEN ================= -->
+        <section id="screen-menu" class="screen">
+            <h2>メインメニュー</h2>
+            <div class="menu-grid">
+                <button class="btn-menu" onclick="Game.switchScreen('screen-battle-setup')">⚔️ オンライン対戦</button>
+                <button class="btn-menu" onclick="Game.switchScreen('screen-deck')">📚 デッキ構築</button>
+                <button class="btn-menu" onclick="Game.switchScreen('screen-profile')">👤 プロフィール</button>
+                <button class="btn-menu" onclick="Game.switchScreen('screen-mission')">🎯 ミッション・実績</button>
+            </div>
+        </section>
+
+        <!-- ================= DECK SCREEN ================= -->
+        <section id="screen-deck" class="screen">
+            <div class="screen-header">
+                <h2>📚 デッキ構築</h2>
+                <button class="btn-back" onclick="Game.switchScreen('screen-menu')">戻る</button>
+            </div>
+            <div class="deck-workspace">
+                <!-- 左側：カードプール（検索・一覧） -->
+                <div class="card-pool-area">
+                    <div class="search-bar">
+                        <input type="text" id="deck-search-input" placeholder="カード名を入力...">
+                        <select id="deck-filter-color">
+                            <option value="">すべての色</option>
+                        </select>
+                    </div>
+                    <div id="card-pool-list" class="card-grid"></div>
+                </div>
+                <!-- 右側：現在のデッキリスト -->
+                <div class="deck-list-area">
+                    <h3>現在のデッキ (<span id="deck-card-count">0</span>/60)</h3>
+                    <div id="current-deck-cards"></div>
+                    <button class="btn-main" id="btn-save-deck">デッキを保存</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= BATTLE SETUP SCREEN ================= -->
+        <section id="screen-battle-setup" class="screen">
+            <h2>⚔️ オンライン対戦マッチング</h2>
+            <div class="setup-box">
+                <p>対戦に使用するデッキを選択してください：</p>
+                <select id="battle-deck-select"></select>
+                <button class="btn-main" id="btn-start-matching">マッチング開始</button>
+                <div id="matching-status" class="hidden">対戦相手を探しています...</div>
+                <button class="btn-back" onclick="Game.switchScreen('screen-menu')">戻る</button>
+            </div>
+        </section>
+
+        <!-- ================= BATTLE SCREEN ================= -->
+        <section id="screen-battle" class="screen">
+            <!-- バトルフィールド（フェイズ3でJSからダイナミックに描画） -->
+            <div class="battle-field">
+                <!-- 相手情報・手札 -->
+                <div class="field-row opponent-row">
+                    <div class="player-status" id="opponent-status">OPPONENT: LP 8000 / COST 0</div>
+                    <div class="hand-container" id="opponent-hand"></div>
+                </div>
+                <!-- 相手バトルエリア・魔法トラップ -->
+                <div class="field-row opponent-board">
+                    <div class="zone-row" id="opponent-zones"></div>
+                    <div class="zone-row" id="opponent-magic-zones"></div>
+                </div>
+                
+                <!-- 中央：フェイズ表示・ログ -->
+                <div class="field-center">
+                    <div id="current-phase-display">メインフェイズ</div>
+                    <div id="battle-log">ゲームが開始されました。</div>
+                    <button id="btn-turn-end" class="btn-action">ターン終了</button>
+                </div>
+
+                <!-- 自分バトルエリア・魔法トラップ -->
+                <div class="field-row player-board">
+                    <div class="zone-row" id="player-magic-zones"></div>
+                    <div class="zone-row" id="player-zones"></div>
+                </div>
+                <!-- 自分情報・手札 -->
+                <div class="field-row player-row">
+                    <div class="player-status" id="player-status">YOU: LP 8000 / COST 1</div>
+                    <div class="hand-container" id="player-hand"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PROFILE SCREEN ================= -->
+        <section id="screen-profile" class="screen">
+            <div class="screen-header">
+                <h2>👤 プレイヤープロフィール</h2>
+                <button class="btn-back" onclick="Game.switchScreen('screen-menu')">戻る</button>
+            </div>
+            <div class="profile-box">
+                <div class="profile-item">
+                    <label>プレイヤー名:</label>
+                    <input type="text" id="profile-name-input">
+                </div>
+                <div class="profile-item">
+                    <label>現在の称号:</label>
+                    <span id="current-title-display">新米調査員</span>
+                </div>
+                <button class="btn-main" id="btn-save-profile">プロフィール保存</button>
+            </div>
+        </section>
+
+        <!-- ================= MISSION SCREEN ================= -->
+        <section id="screen-mission" class="screen">
+            <div class="screen-header">
+                <h2>🎯 ミッション・実績</h2>
+                <button class="btn-back" onclick="Game.switchScreen('screen-menu')">戻る</button>
+            </div>
+            <div id="mission-list-container"></div>
+        </section>
+
     </div>
-    <div id="lobby-screen" class="screen">
-        <input id="input-name" placeholder="名前">
-        <button id="btn-join">参加</button>
-    </div>
-    <div id="battle-screen" class="screen">
-        <div id="player-status"></div>
-        <div id="opponent-status-area"></div>
-        <div id="player-board"></div>
-        <div id="player-hand"></div>
-        <button id="btn-turn-end">ターン終了</button>
-        <div id="battle-log"></div>
-    </div>
 
-    <!-- ⚠️ ここが重要！JavaScriptをここに書き込む -->
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
-    <script>
-        const GameClient = {
-            socket: null,
-            gameState: null,
-            uiState: { phase: "IDLE", selectedAttackerIndex: null },
-
-            init() {
-                this.socket = io('http://localhost:3000');
-                this.bindEvents();
-            },
-
-            bindEvents() {
-                document.addEventListener('click', (e) => {
-                    const button = e.target.closest('button[data-target]');
-                    if (button) {
-                        const targetId = button.getAttribute('data-target');
-                        const targetScreen = document.getElementById(targetId);
-                        if (targetScreen) {
-                            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-                            targetScreen.classList.add('active');
-                        }
-                    }
-                });
-
-                document.getElementById("btn-join")?.addEventListener("click", (e) => {
-                    const playerName = document.getElementById("input-name")?.value || "ゲスト";
-                    this.socket.emit("join-lobby", { name: playerName, deck: [] });
-                    e.target.disabled = true;
-                });
-            },
-
-            renderStatus() {
-                const s = this.gameState;
-                const p = document.getElementById("player-status");
-                if(p) p.innerHTML = s.me.name + "<br>LP: " + s.me.lp;
-            }
-        };
-
-        window.addEventListener('DOMContentLoaded', () => GameClient.init());
-    </script>
+    <!-- 各種ゲームロジックスクリプト -->
+    <script src="js/main.js"></script>
+    <script src="js/card.js"></script>
+    <script src="js/deck.js"></script>
+    <script src="js/battle.js"></script>
+    <script src="js/effect.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/mission.js"></script>
+    <script src="js/online.js"></script>
 </body>
+
 </html>
