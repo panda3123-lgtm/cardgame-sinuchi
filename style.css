@@ -1,24 +1,19 @@
 /* ================= GENERAL STYLES ================= */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
 body {
     background-color: #0d0e12;
     color: #e0e6ed;
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    overflow: hidden;
     width: 100vw;
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* 画面全体が動くのを禁止 */
 }
 
-/* 16:9のゲームコンテナ固定 */
+/* 16:9のゲームコンテナ：枠はここで固定 */
 #game-container {
     width: 100vw;
     height: calc(100vw * 9 / 16);
@@ -27,10 +22,10 @@ body {
     background: radial-gradient(circle, #1a1c24 0%, #0f1015 100%);
     position: relative;
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    overflow: hidden; /* コンテナ自体は固定 */
+    overflow: hidden; /* 枠のハミ出しを隠す */
 }
 
-/* 🛑 全画面共通：コンテンツが溢れたら自動でスクロール */
+/* 各画面：ここが枠内でスクロールするエンジン */
 .screen {
     display: none;
     width: 100%;
@@ -39,212 +34,42 @@ body {
     top: 0;
     left: 0;
     padding: 20px;
-    overflow-y: auto; /* 全画面でスクロール有効 */
     flex-direction: column;
+    overflow-y: auto; /* 枠内で縦スクロールを許可 */
 }
 
-.screen.active {
-    display: flex;
-}
+.screen.active { display: flex; }
 
 /* ================= COMPONENTS ================= */
 .btn-main, .btn-menu, .btn-back, .btn-action {
     background: linear-gradient(135deg, #ff007f 0%, #7f00ff 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(127, 0, 255, 0.3);
-    transition: transform 0.1s, opacity 0.2s;
-    flex-shrink: 0;
-}
-
-.btn-main:active, .btn-menu:active {
-    transform: scale(0.95);
-}
-
-.btn-back {
-    background: #333;
-    box-shadow: none;
+    color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; flex-shrink: 0;
 }
 
 .screen-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid #2a2d3d;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-    flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a2d3d; padding-bottom: 10px; margin-bottom: 15px; flex-shrink: 0;
 }
 
-/* タイトル画面 */
-#screen-title {
-    justify-content: center;
-    align-items: center;
-    gap: 40px;
-}
-.title-logo h1 {
-    font-size: 48px;
-    background: linear-gradient(to right, #00ffff, #ff007f);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 20px rgba(0,255,255,0.2);
-}
+/* タイトル・メニュー */
+#screen-title, #screen-menu { justify-content: center; align-items: center; gap: 30px; }
+.title-logo h1 { font-size: 48px; background: linear-gradient(to right, #00ffff, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 60%; }
 
-/* メニュー画面 */
-#screen-menu {
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-}
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    width: 60%;
-}
-.btn-menu {
-    padding: 20px;
-    font-size: 18px;
-}
+/* DECK EDITOR */
+.deck-workspace { display: flex; height: 85%; gap: 15px; min-height: 0; }
+.card-pool-area, .deck-list-area { flex: 1; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; min-height: 0; }
+.card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; overflow-y: auto; flex-grow: 1; padding-right: 5px; }
 
-/* ================= DECK EDITOR WINDOW ================= */
-.deck-workspace {
-    display: flex;
-    flex: 1; /* 残りスペースを使い切る */
-    gap: 15px;
-    min-height: 0;
-}
-.card-pool-area {
-    flex: 2;
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-.deck-list-area {
-    flex: 1;
-    background: rgba(0,0,0,0.5);
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 0;
-}
-.card-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
-    overflow-y: auto;
-    flex-grow: 1;
-    height: 0;
-    padding-right: 5px;
-}
+/* BATTLE FIELD */
+.battle-field { display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
+#battle-log { font-size: 12px; color: #aaa; overflow-y: auto; height: 100%; }
 
-/* ================= BATTLE FIELD LAYOUT ================= */
-.battle-field {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    justify-content: space-between;
-    min-height: 0;
-}
-.field-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    flex-shrink: 0;
-}
-.player-row, .opponent-row {
-    height: 15%;
-    background: rgba(20, 22, 30, 0.8);
-}
-.player-status, .opponent-status {
-    position: absolute;
-    left: 20px;
-    font-weight: bold;
-    color: #00ffff;
-}
-.hand-container {
-    display: flex;
-    gap: 5px;
-    height: 100%;
-    align-items: center;
-    overflow-x: auto;
-}
-.player-board, .opponent-board {
-    height: 25%;
-    flex-direction: column;
-    gap: 5px;
-    border-top: 1px dashed #2a2d3d;
-}
-.zone-row {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    width: 100%;
-    height: 45%;
-}
-.field-center {
-    height: 20%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 40px;
-    background: rgba(0,0,0,0.2);
-    flex-shrink: 0;
-}
-
-#battle-log {
-    font-size: 12px;
-    color: #aaa;
-    max-width: 50%;
-    height: 100%;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-
-/* 🛑 カードデザイン：画像とテキストの完全配置 */
+/* カードデザイン：画像とテキスト */
 .card-item {
-    width: 70px;
-    height: 95px;
-    background: #20222c;
-    border: 2px solid #444;
-    border-radius: 4px;
-    position: relative;
-    cursor: pointer;
-    padding: 4px;
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow: hidden;
+    width: 70px; height: 95px; background: #20222c; border: 2px solid #444; border-radius: 4px; padding: 4px;
+    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; cursor: pointer;
 }
-
-.card-item img {
-    width: 100%;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 2px;
-    margin-bottom: 3px;
-    background-color: #15161d;
-}
-
-.card-name {
-    font-size: 8px;
-    font-weight: bold;
-    line-height: 1.1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-}
+.card-item img { width: 100%; height: 50px; object-fit: cover; border-radius: 2px; margin-bottom: 3px; background-color: #15161d; }
+.card-name { font-size: 8px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .hidden { display: none !important; }
