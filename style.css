@@ -38,8 +38,13 @@ body {
 
 /* デッキエディタ（復元済み） */
 .deck-workspace { display: flex; height: 70vh; gap: 20px; }
-.card-pool-area { flex: 2; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; }
-.deck-list-area { flex: 1; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; }
+
+/* ▼▼▼ ここを修正しました（min-height: 0; を追加） ▼▼▼ */
+.card-pool-area { flex: 2; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; min-height: 0; }
+
+/* ▼▼▼ デッキリストも溢れたらスクロールするように flex 等を追加 ▼▼▼ */
+.deck-list-area { flex: 1; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; min-height: 0; }
+
 .card-grid {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
     overflow-y: auto; flex-grow: 1; padding-right: 5px;
