@@ -1,75 +1,54 @@
 /* ================= GENERAL STYLES ================= */
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-
 body {
-    background-color: #0d0e12;
-    color: #e0e6ed;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; /* 画面全体が動くのを禁止 */
+    background-color: #0d0e12; width: 100vw; height: 100vh;
+    display: flex; justify-content: center; align-items: center; overflow: hidden;
 }
 
-/* 16:9のゲームコンテナ：枠はここで固定 */
 #game-container {
-    width: 100vw;
-    height: calc(100vw * 9 / 16);
-    max-height: 100vh;
-    max-width: calc(100vh * 16 / 9);
+    width: 100vw; height: calc(100vw * 9 / 16);
+    max-height: 100vh; max-width: calc(100vh * 16 / 9);
     background: radial-gradient(circle, #1a1c24 0%, #0f1015 100%);
-    position: relative;
+    position: relative; overflow-y: auto; /* ここでスクロールさせる */
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    overflow: hidden; /* 枠のハミ出しを隠す */
 }
 
-/* 各画面：ここが枠内でスクロールするエンジン */
+/* 画面設定：要素を減らさず、全て表示できる設定 */
 .screen {
-    display: none;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 20px;
-    flex-direction: column;
-    overflow-y: auto; /* 枠内で縦スクロールを許可 */
+    display: none; width: 100%; min-height: 100%; padding: 20px;
+    flex-direction: column; position: relative;
 }
-
 .screen.active { display: flex; }
 
-/* ================= COMPONENTS ================= */
-.btn-main, .btn-menu, .btn-back, .btn-action {
-    background: linear-gradient(135deg, #ff007f 0%, #7f00ff 100%);
-    color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; flex-shrink: 0;
+/* 共通コンポーネント（復元済み） */
+.btn-main, .btn-menu, .btn-back {
+    background: linear-gradient(135deg, #ff007f, #7f00ff);
+    color: white; border: none; padding: 15px 30px; border-radius: 6px; cursor: pointer;
+    font-weight: bold; margin: 10px;
 }
-
 .screen-header {
-    display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2a2d3d; padding-bottom: 10px; margin-bottom: 15px; flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid #2a2d3d; padding-bottom: 10px; margin-bottom: 20px;
 }
 
-/* タイトル・メニュー */
-#screen-title, #screen-menu { justify-content: center; align-items: center; gap: 30px; }
+/* タイトル・メニュー（復元済み） */
+#screen-title { justify-content: center; align-items: center; gap: 40px; }
 .title-logo h1 { font-size: 48px; background: linear-gradient(to right, #00ffff, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 60%; }
 
-/* DECK EDITOR */
-.deck-workspace { display: flex; height: 85%; gap: 15px; min-height: 0; }
-.card-pool-area, .deck-list-area { flex: 1; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; min-height: 0; }
-.card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; overflow-y: auto; flex-grow: 1; padding-right: 5px; }
-
-/* BATTLE FIELD */
-.battle-field { display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
-#battle-log { font-size: 12px; color: #aaa; overflow-y: auto; height: 100%; }
-
-/* カードデザイン：画像とテキスト */
-.card-item {
-    width: 70px; height: 95px; background: #20222c; border: 2px solid #444; border-radius: 4px; padding: 4px;
-    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; cursor: pointer;
+/* デッキエディタ（復元済み） */
+.deck-workspace { display: flex; height: 70vh; gap: 20px; }
+.card-pool-area { flex: 2; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; }
+.deck-list-area { flex: 1; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; }
+.card-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    overflow-y: auto; flex-grow: 1; padding-right: 5px;
 }
-.card-item img { width: 100%; height: 50px; object-fit: cover; border-radius: 2px; margin-bottom: 3px; background-color: #15161d; }
-.card-name { font-size: 8px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.hidden { display: none !important; }
+/* カードデザイン（復元済み） */
+.card-item {
+    width: 70px; height: 95px; background: #20222c; border: 2px solid #444; border-radius: 4px;
+    display: flex; flex-direction: column; cursor: pointer; padding: 4px;
+}
+.card-item img { width: 100%; height: 50px; object-fit: cover; background: #15161d; border-radius: 2px; }
+.card-name { font-size: 8px; font-weight: bold; text-align: center; overflow: hidden; white-space: nowrap; margin-top: 4px; }
