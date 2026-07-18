@@ -19,11 +19,35 @@ const GameClient = {
     },
 
     bindEvents() {
-        // --- 通信イベント ---
+        // ==========================================
+        // 🖥️ UI画面切り替えイベント（今回追加した部分）
+        // ==========================================
+        document.querySelectorAll('button[data-target]').forEach(button => {
+            button.addEventListener('click', (e) => {
+                // 全ての画面から active を外す（非表示にする）
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                // ボタンに設定されたターゲット(次の画面)に active を付ける（表示する）
+                const targetId = button.getAttribute('data-target');
+                const targetScreen = document.getElementById(targetId);
+                if (targetScreen) {
+                    targetScreen.classList.add('active');
+                }
+            });
+        });
+
+        // ==========================================
+        // 🌐 通信イベント
+        // ==========================================
         this.socket.on("match-found", (data) => {
             console.log("マッチング成功！ Room:", data.roomId);
-            document.getElementById("lobby-screen").style.display = "none";
-            document.getElementById("battle-screen").style.display = "block";
+            
+            // UI切り替えロジックを使ってバトル画面へ遷移
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById("battle-screen").classList.add('active');
+            
             this.logMessage("対戦相手が見つかりました！バトル開始！");
         });
 
@@ -39,34 +63,47 @@ const GameClient = {
             location.reload();
         });
 
-        // --- UIイベント ---
-        document.getElementById("btn-join").onclick = () => {
-            const playerName = document.getElementById("input-name").value || "ゲスト";
-            // ※本来はデッキ構築画面から取得するが、統合テスト用にデフォルトデッキを送信
-            const sampleDeck = [
-                { カード名: "一般兵士", type: "モンスター", cost: 1, ATK: 1000 },
-                { カード名: "マネネ", type: "モンスター", cost: 2, ATK: 800 },
-                { カード名: "桜の精霊", type: "モンスター", cost: 4, ATK: 1500 },
-                { カード名: "参拝", type: "魔法", cost: 1 },
-                { カード名: "自衛用拳銃", type: "トラップ", cost: 2 },
-                { カード名: "クトゥルフ", type: "モンスター", cost: 8, ATK: 3000 },
-                { カード名: "ルルイエ", type: "魔法", cost: 3 }
-            ];
-            
-            this.socket.emit("join-lobby", { name: playerName, deck: sampleDeck });
-            document.getElementById("lobby-status").textContent = "マッチング待機中...";
-            document.getElementById("btn-join").disabled = true;
-        };
+        // ==========================================
+        // 🎮 UI操作イベント（バトル・ロビー）
+        // ==========================================
+        const btnJoin = document.getElementById("btn-join");
+        if (btnJoin) {
+            btnJoin.onclick = () => {
+                const playerName = document.getElementById("input-name").value || "ゲスト";
+                // ※本来はデッキ構築画面から取得するが、統合テスト用にデフォルトデッキを送信
+                const sampleDeck = [
+                    { カード名: "一般兵士", type: "モンスター", cost: 1, ATK: 1000 },
+                    { カード名: "マネネ", type: "モンスター", cost: 2, ATK: 800 },
+                    { カード名: "桜の精霊", type: "モンスター", cost: 4, ATK: 1500 },
+                    { カード名: "参拝", type: "魔法", cost: 1 },
+                    { カード名: "自衛用拳銃", type: "トラップ", cost: 2 },
+                    { カード名: "クトゥルフ", type: "モンスター", cost: 8, ATK: 3000 },
+                    { カード名: "ルルイエ", type: "魔法", cost: 3 }
+                ];
+                
+                this.socket.emit("join-lobby", { name: playerName, deck: sampleDeck });
+                
+                const lobbyStatus = document.getElementById("lobby-status");
+                if(lobbyStatus) lobbyStatus.textContent = "マッチング待機中...";
+                btnJoin.disabled = true;
+            };
+        }
 
-        document.getElementById("btn-turn-end").onclick = () => {
-            if (!this.gameState || !this.gameState.isMyTurn) return;
-            this.socket.emit("end-turn");
-        };
+        const btnTurnEnd = document.getElementById("btn-turn-end");
+        if (btnTurnEnd) {
+            btnTurnEnd.onclick = () => {
+                if (!this.gameState || !this.gameState.isMyTurn) return;
+                this.socket.emit("end-turn");
+            };
+        }
 
         // ダイレクトアタック用のクリック領域（相手のLPやアイコン部分）
-        document.getElementById("opponent-status-area").onclick = () => {
-            this.handleDirectAttack();
-        };
+        const oppStatusArea = document.getElementById("opponent-status-area");
+        if (oppStatusArea) {
+            oppStatusArea.onclick = () => {
+                this.handleDirectAttack();
+            };
+        }
     },
 
     // ==========================================
@@ -189,35 +226,45 @@ const GameClient = {
         const state = this.gameState;
         
         const myStatus = document.getElementById("player-status");
-        myStatus.innerHTML = `
-            <strong>${state.me.name || "YOU"}</strong><br>
-            LP: ${state.me.lp} | COST: ${state.me.currentCost} / ${state.me.maxCost}<br>
-            墓地: ${state.me.graveCount}枚
-        `;
-
-        const oppStatus = document.getElementById("opponent-status-area");
-        oppStatus.innerHTML = `
-            <strong>${state.opp.name || "OPPONENT"}</strong><br>
-            LP: ${state.opp.lp} | COST: ${state.opp.currentCost} / ${state.opp.maxCost}<br>
-            手札: ${state.opp.handCount}枚 | 墓地: ${state.opp.graveCount}枚
-        `;
-        // ターゲット選択中の場合、相手の顔（ステータス領域）を赤く光らせて攻撃可能をアピール
-        if (this.uiState.phase === "ATTACK_TARGETING") {
-            oppStatus.style.border = "2px solid red";
-            oppStatus.style.cursor = "crosshair";
-        } else {
-            oppStatus.style.border = "none";
-            oppStatus.style.cursor = "default";
+        if(myStatus) {
+            myStatus.innerHTML = `
+                <strong>${state.me.name || "YOU"}</strong><br>
+                LP: ${state.me.lp} | COST: ${state.me.currentCost} / ${state.me.maxCost}<br>
+                墓地: ${state.me.graveCount}枚
+            `;
         }
 
-        document.getElementById("turn-display").textContent = 
-            `Turn ${state.turnCount} - ${state.isMyTurn ? "あなたのターン" : "相手のターン"}`;
+        const oppStatus = document.getElementById("opponent-status-area");
+        if(oppStatus) {
+            oppStatus.innerHTML = `
+                <strong>${state.opp.name || "OPPONENT"}</strong><br>
+                LP: ${state.opp.lp} | COST: ${state.opp.currentCost} / ${state.opp.maxCost}<br>
+                手札: ${state.opp.handCount}枚 | 墓地: ${state.opp.graveCount}枚
+            `;
+            // ターゲット選択中の場合、相手の顔（ステータス領域）を赤く光らせて攻撃可能をアピール
+            if (this.uiState.phase === "ATTACK_TARGETING") {
+                oppStatus.style.border = "2px solid red";
+                oppStatus.style.cursor = "crosshair";
+            } else {
+                oppStatus.style.border = "none";
+                oppStatus.style.cursor = "default";
+            }
+        }
+
+        const turnDisplay = document.getElementById("turn-display");
+        if(turnDisplay) {
+            turnDisplay.textContent = `Turn ${state.turnCount} - ${state.isMyTurn ? "あなたのターン" : "相手のターン"}`;
+        }
             
-        document.getElementById("btn-turn-end").disabled = !state.isMyTurn;
+        const btnTurnEnd = document.getElementById("btn-turn-end");
+        if(btnTurnEnd) {
+            btnTurnEnd.disabled = !state.isMyTurn;
+        }
     },
 
     renderHand(handData) {
         const container = document.getElementById("player-hand");
+        if(!container) return;
         container.innerHTML = "";
 
         handData.forEach((card, index) => {
@@ -235,6 +282,7 @@ const GameClient = {
 
     renderBoard(containerId, boardData, isMine) {
         const container = document.getElementById(containerId);
+        if(!container) return;
         container.innerHTML = "";
 
         boardData.forEach((card, index) => {
@@ -271,6 +319,7 @@ const GameClient = {
 
     renderMagicBoard(containerId, magicData, isMine) {
         const container = document.getElementById(containerId);
+        if(!container) return;
         container.innerHTML = "";
 
         magicData.forEach((card, index) => {
